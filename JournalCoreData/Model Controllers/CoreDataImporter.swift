@@ -22,8 +22,7 @@ class CoreDataImporter {
             print(fetchedEntries.count)
             let entriesDictionary = self.saveToDictionary(entries: fetchedEntries)
             for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                if let entry = entriesDictionary[identifier] {
+                if let entry = entriesDictionary[entryRep.identifier!] {
                     if entry != entryRep {
                     print("Updates existing Entry")
                     self.update(entry: entry, with: entryRep)
