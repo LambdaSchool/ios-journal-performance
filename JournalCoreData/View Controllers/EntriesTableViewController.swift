@@ -18,6 +18,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
         
+        NotificationCenter.default.addObserver(self, selector: #selector(updateProgress(with:)), name: NSNotification.Name("updateProgress"), object: nil)
+        
+        tableView.tableHeaderView?.isHidden = true
         refresh(nil)
     }
     
@@ -31,15 +34,19 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+        progressView.progress = 0.0
+        tableView.tableHeaderView?.isHidden = false
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
             
+            self.fetchedResultsController = self.makeFetchResultsController()
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                self.tableView.tableHeaderView?.isHidden = true
             }
         }
     }
@@ -146,15 +153,20 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         }
     }
     
-    // MARK: - Properties
+     @objc private func updateProgress(with notification: Notification) {
+        if let percentage = notification.userInfo?["progress"] as? Float {
+            DispatchQueue.main.async {
+                self.progressView.progress = percentage
+            }
+        }
+    }
     
-    let entryController = EntryController()
-    
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    private func makeFetchResultsController() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
+        moc.reset()
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
@@ -162,6 +174,13 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         try! frc.performFetch()
         
         return frc
-    }()
+    }
     
+    // MARK: - Properties
+    
+    let entryController = EntryController()
+    
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = makeFetchResultsController()
+    
+    @IBOutlet weak var progressView: UIProgressView!
 }
