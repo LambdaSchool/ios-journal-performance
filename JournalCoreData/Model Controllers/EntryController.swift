@@ -58,7 +58,7 @@ class EntryController {
         
         URLSession.shared.dataTask(with: request) { (data, _, error) in
             if let error = error {
-                NSLog("Error PUTting Entry to server: \(error)")
+                NSLog("Error putting Entry to server: \(error)")
                 completion(error)
                 return
             }
@@ -90,7 +90,7 @@ class EntryController {
         }.resume()
     }
     
-    func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
+    func fetchEntriesFromServer(completion: @escaping (([String:EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
         
@@ -109,8 +109,8 @@ class EntryController {
             }
 
             do {
-                let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
-                completion(entryReps, nil)
+                let entryRepsDict = try JSONDecoder().decode([String: EntryRepresentation].self, from: data)
+                completion(entryRepsDict, nil)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
                 completion(nil, error)
@@ -128,12 +128,12 @@ class EntryController {
         }
     }
     
-    private func updateEntries(with representations: [EntryRepresentation],
+    private func updateEntries(with representationsDict: [String:EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
+        importer?.sync(entriesDict: representationsDict) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
