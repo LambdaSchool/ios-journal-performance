@@ -44,7 +44,7 @@ class CoreDataImporter {
         guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
         
         var result: Entry? = nil
         do {
