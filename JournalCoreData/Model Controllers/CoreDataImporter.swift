@@ -14,23 +14,50 @@ class CoreDataImporter {
         self.context = context
     }
     
+//    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+//        print("start syncing")
+//        let localEntries = fetchSingleEntryFromPersistentStore(with: entries, in: self.context)
+//        self.context.perform {
+//            for entryRep in entries {
+//                guard let identifier = entryRep.identifier else { continue }
+//
+//                let entry = localEntries[identifier]
+//                if let entry = entry, entry != entryRep {
+//                    self.update(entry: entry, with: entryRep)
+//                } else if entry == nil {
+//                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+//                }
+//            }
+//            print("start syncing")
+//            completion(nil)
+//        }
+//    }
+//
+    
+    
+    
+    
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
-        
+        print("start syncing")
+
         self.context.perform {
+            let entryStore = self.fetchSingleEntryFromPersistentStore(entries: entries, in: self.context)
+
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+
+               let entry = entryStore[identifier]
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
                 } else if entry == nil {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            print("end syncing")
             completion(nil)
         }
     }
-    
+
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
         entry.title = entryRep.title
         entry.bodyText = entryRep.bodyText
@@ -39,16 +66,21 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    private func fetchSingleEntryFromPersistentStore(entries:[EntryRepresentation] , in context: NSManagedObjectContext) -> [String: Entry] {
         
-        guard let identifier = identifier else { return nil }
+       // guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        let identifiers: [String] = entries.compactMap {$0.identifier}
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
+        var result:[String: Entry] = [:]
         
-        var result: Entry? = nil
+       
         do {
-            result = try context.fetch(fetchRequest).first
+           let entryFetching = try context.fetch(fetchRequest)
+            for entry in entryFetching {
+                result[entry.identifier!] = entry
+            }
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
