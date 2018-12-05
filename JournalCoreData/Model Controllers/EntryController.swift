@@ -42,7 +42,7 @@ class EntryController {
     }
     
     private func put(entry: Entry, completion: @escaping ((Error?) -> Void) = { _ in }) {
-        
+       
         let identifier = entry.identifier ?? UUID().uuidString
         let requestURL = baseURL.appendingPathComponent(identifier).appendingPathExtension("json")
         var request = URLRequest(url: requestURL)
@@ -111,12 +111,15 @@ class EntryController {
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)
+                 
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
                 completion(nil, error)
                 return
+            
             }
         }.resume()
+
     }
     
     func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
