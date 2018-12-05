@@ -18,6 +18,7 @@ class CoreDataImporter {
         
         self.context.perform {
             for entryRep in entries {
+                print("Time began")
                 guard let identifier = entryRep.identifier else { continue }
                 
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
@@ -27,8 +28,10 @@ class CoreDataImporter {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+           
             completion(nil)
         }
+         print("Time end")
     }
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
