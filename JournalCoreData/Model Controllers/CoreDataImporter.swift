@@ -17,16 +17,48 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+//            for entryRep in entries {
+//                guard let identifier = entryRep.identifier else { continue }
+//
+//                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+//                if let entry = entry, entry != entryRep {
+//                    self.update(entry: entry, with: entryRep)
+//                } else if entry == nil {
+//                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+//                }
+//            }
+            
+            var identifiers: [String] = []
+            
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
+                identifiers.append(identifier)
+            }
+            
+            let savedEntries = self.fetchEntriesFromPersistentStore(with: identifiers, in: self.context)
+            
+            var coreDataDictionary: [String: Entry] = [:]
+            
+            if let savedEntries = savedEntries {
+                for entry in savedEntries {
+                    guard let identifier = entry.identifier else { continue }
+                    
+                    coreDataDictionary[identifier] = entry
+                }
+            }
+            
+            for entryRep in entries {
+                guard let identifier = entryRep.identifier else { continue }
+                
+                let coreDataEntry = coreDataDictionary[identifier]
+                if let coreDataEntry = coreDataEntry, coreDataEntry != entryRep {
+                    self.update(entry: coreDataEntry, with: entryRep)
+                } else if coreDataEntry == nil {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            
             completion(nil)
         }
     }
@@ -39,22 +71,34 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
+    private func fetchEntriesFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> [Entry]? {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
-//        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
-        var result: Entry? = nil
+        var result: [Entry]? = nil
         do {
-            result = try context.fetch(fetchRequest).first
+            result = try context.fetch(fetchRequest)
         } catch {
-            NSLog("Error fetching single entry: \(error)")
+            NSLog("Could not fetch entries from coreData: \(error)")
         }
         return result
     }
+    
+//    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+//
+//        guard let identifier = identifier else { return nil }
+//
+//        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+//        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+//
+//        var result: Entry? = nil
+//        do {
+//            result = try context.fetch(fetchRequest).first
+//        } catch {
+//            NSLog("Error fetching single entry: \(error)")
+//        }
+//        return result
+//    }
     
     let context: NSManagedObjectContext
 }
