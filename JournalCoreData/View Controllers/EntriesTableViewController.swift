@@ -18,6 +18,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
         
+        let start = CFAbsoluteTimeGetCurrent()
+        print(start)
         refresh(nil)
     }
     
@@ -40,6 +42,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                let stop = CFAbsoluteTimeGetCurrent()
+                print(stop)
             }
         }
     }
@@ -68,7 +72,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             
             let entry = fetchedResultsController.object(at: indexPath)
