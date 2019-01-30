@@ -23,6 +23,7 @@
 		46AA32EF21213184003AC495 /* EntryTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32EE21213184003AC495 /* EntryTableViewCell.swift */; };
 		46AA32F121213236003AC495 /* TimestampFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32F021213236003AC495 /* TimestampFormatter.swift */; };
 		9D6A752921477CC100A4A0C3 /* CoreDataImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6A752821477CC100A4A0C3 /* CoreDataImporter.swift */; };
+		A2724B002201205F001F1A75 /* SequenceToDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2724AFF2201205F001F1A75 /* SequenceToDictionary.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 		46AA32F021213236003AC495 /* TimestampFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampFormatter.swift; sourceTree = "<group>"; };
 		46F9C2242122456400E7FF73 /* JournalCoreData 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "JournalCoreData 2.xcdatamodel"; sourceTree = "<group>"; };
 		9D6A752821477CC100A4A0C3 /* CoreDataImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataImporter.swift; sourceTree = "<group>"; };
+		A2724AFF2201205F001F1A75 /* SequenceToDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceToDictionary.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,7 @@
 				46AA32F5212132E8003AC495 /* Views */,
 				46AA32F4212132AD003AC495 /* View Controllers */,
 				46AA32F821213317003AC495 /* Storyboards */,
+				A2724AFE2201204F001F1A75 /* Utilities */,
 				46AA32F72121330D003AC495 /* Resources */,
 			);
 			path = JournalCoreData;
@@ -152,6 +155,14 @@
 				46AA32D821212A2A003AC495 /* LaunchScreen.storyboard */,
 			);
 			path = Storyboards;
+			sourceTree = "<group>";
+		};
+		A2724AFE2201204F001F1A75 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				A2724AFF2201205F001F1A75 /* SequenceToDictionary.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -238,6 +249,7 @@
 				4697668A2123E0FA00E7FF73 /* EntryRepresentation.swift in Sources */,
 				46AA32ED2121315F003AC495 /* EntryDetailViewController.swift in Sources */,
 				46AA32E721212C78003AC495 /* CoreDataStack.swift in Sources */,
+				A2724B002201205F001F1A75 /* SequenceToDictionary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

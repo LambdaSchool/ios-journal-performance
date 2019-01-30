@@ -133,12 +133,14 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
+        print("Started syncing")
+        entriesArray = (importer?.sync(entryRepresentations: representations) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
                 return
             }
+            print("finished Syncing")
             
             context.perform {
                 do {
@@ -150,7 +152,7 @@ class EntryController {
                     return
                 }
             }
-        }
+            })!
     }
     
     func saveToPersistentStore() {        
@@ -161,5 +163,6 @@ class EntryController {
         }
     }
     
+    public var entriesArray: [[Entry]] = []
     private var importer: CoreDataImporter?
 }
