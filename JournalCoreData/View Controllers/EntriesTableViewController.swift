@@ -21,7 +21,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let start = CFAbsoluteTimeGetCurrent()
         
         print(start)
-//        refreshState = true
+        refreshState = true
         refresh(nil)
         
     }
@@ -47,7 +47,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
                 self.refreshControl?.endRefreshing()
                 let stop = CFAbsoluteTimeGetCurrent()
                 print(stop)
-//                self.refreshState = false
+                self.refreshState = false
             }
         }
     }
@@ -157,7 +157,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Properties
     
     let entryController = EntryController()
-//    var refreshState : Bool = false
+    var refreshState : Bool = false
     
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
@@ -165,9 +165,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         
         let moc = CoreDataStack.shared.mainContext
         
-//        if refreshState == true {
-//            moc.reset()
-//        }
+        if refreshState == true {
+            moc.reset()
+        }
         
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
