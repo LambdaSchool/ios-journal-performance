@@ -14,57 +14,50 @@ class CoreDataImporter {
         self.context = context
     }
     
-    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+    func sync(entryRepresentations: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
             
-            // creating an Entry NSFetchRequest
-            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest() // create an Entry NSFetchRequest
+            var result: [Entry]? = nil // create an entry array named 'result' that will store the entries you find in the Persistent Store
             
-            // create an entry array named 'result' that will store the entries you find
-            // in the Persistent Store
-            var result: [Entry]? = nil
-            
-            // in the current (background) context, perform the fetch request from the persistent store
-            do {
-                // assign the (error-throwing) fetch request, done on the background context, to the
-                // value result
-                result = try self.context.fetch(fetchRequest)
+            do { // in the current (background) context, perform the fetch request from the persistent store
+                result = try self.context.fetch(fetchRequest) // assign the (error-throwing) fetch request, done on the background context, to result
             } catch {
-                // if the fetch request throws an error, NSLog it
-                NSLog("Error fetching list of entries: \(error)")
+                NSLog("Error fetching list of entries: \(error)") // if the fetch request throws an error, NSLog it
             }
             
-            // if there is already a list of arrays in core data,
-            if let alreadyInCoreDataEntries = result/*, entry != entryRep*/ {
+            // we now need to check to see that we have results back
+            // if we do, let's create a dictionary to put those results in
+            
+            if let alreadyInCoreDataEntries = result {
+                var coreDataDictionary: [String: Entry] = [:] // if there is already a list of arrays in core data, make a dictionary
                 
                 for existingEntry in alreadyInCoreDataEntries {
+                    guard let identifier = existingEntry.identifier else { return }
+                    coreDataDictionary[identifier] = existingEntry
+                }
+                
+                for entryRep in entryRepresentations {
+                    guard let identifier = entryRep.identifier else { return }
+                    
+                    if let entry = coreDataDictionary[identifier], entry != entryRep {
+                        self.update(entry: entry, with: entryRep)
+                    } else if coreDataDictionary[identifier] == nil {
+                        _ = Entry(entryRepresentation: entryRep, context: self.context)
+                    }
                     
                 }
                 
-                // update the entry with
+            } else {
+                // the fetch request returned no results, meaning there was nothing in core data,
+                // meaning all we have to do is just create new entries from the entry representation
                 
-                self.update(entry: entry, with: entryRep)
-            } else if result == nil {
-                _ = Entry(entryRepresentation: entryRep, context: self.context)
-            }
-            
-            // for each entry in the MASSIVE array of entries (10,000 long)
-            for entryRep in entries {
+                for entryRep in entryRepresentations {
+                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                }
                 
-                // safely unwrap the specific entryRep identifier
-                guard let identifier = entryRep.identifier else { continue }
-                
-                // creating an NSPredicate that looks for a matching identifier in the persistent store
-                fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
-            
             }
-            
-            }
-            
-            //                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-            
-            
             
             completion(nil)
         }
