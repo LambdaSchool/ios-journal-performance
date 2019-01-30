@@ -14,19 +14,19 @@ class CoreDataImporter {
         self.context = context
     }
 
-    func sync(entryRepresentations: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
-        
-        self.context.perform {
+    func sync(entryRepresentations: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) -> [[Entry]] {
+        var entriesArray: [Entry] = []
+        self.context.performAndWait {
             self.identifierEntryRepresentationDictionary = entryRepresentations.toDictionary{ $0.identifier! }
             let coreDataEntriesDictionary = self.fetchEntriesFromPersistentStore(in: self.context)?.toDictionary{ $0.identifier }
             for entryRepresentation in entryRepresentations {
                 guard let identifier = entryRepresentation.identifier else { continue }
-                if (coreDataEntriesDictionary?.contains(where: { (arg0) -> Bool in
-                    return arg0.key == identifier
-                }))! {
-                    self.update(entry: (coreDataEntriesDictionary?[identifier])!, with: entryRepresentation)
+                if let entry =  coreDataEntriesDictionary?[identifier] {
+                    let updatedEntry = self.update(entry: entry, with: entryRepresentation)
+                    entriesArray.append(updatedEntry)
                 } else {
-                    _ = Entry(entryRepresentation: entryRepresentation, context: self.context)
+                    let newEntry = Entry(entryRepresentation: entryRepresentation, context: self.context)
+                    entriesArray.append(newEntry!)
                 }
                 
                 //                if let entry = entry(), entry != entryRep {
@@ -35,16 +35,28 @@ class CoreDataImporter {
                 //                    _ = Entry(entryRepresentation: entryRep, context: self.context)
                 //                }
             }
+            
             completion(nil)
+            
         }
+        let sortedEntriesArray = entriesArray.sorted { (leftEntry, rightEntry) -> Bool in
+            return (leftEntry.timestamp)! > rightEntry.timestamp!
+        }
+        
+        let filteredHappyEntriesArray = sortedEntriesArray.filter{ $0.mood == "🙂"}
+        let filteredMehEntriesArray = sortedEntriesArray.filter{ $0.mood == "😐"}
+        let filteredSadEntriesArray = sortedEntriesArray.filter{ $0.mood == "☹️"}
+        let sectionArrays = [filteredHappyEntriesArray, filteredMehEntriesArray, filteredSadEntriesArray]
+        return sectionArrays
     }
     
-    private func update(entry: Entry, with entryRep: EntryRepresentation) {
+    private func update(entry: Entry, with entryRep: EntryRepresentation) -> Entry {
         entry.title = entryRep.title
         entry.bodyText = entryRep.bodyText
         entry.mood = entryRep.mood
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
+        return entry
     }
     
     private func fetchEntriesFromPersistentStore(in context: NSManagedObjectContext) -> [Entry]? {
@@ -60,7 +72,7 @@ class CoreDataImporter {
         return result
     }
     
-    var identifierEntryRepresentationDictionary: [String : EntryRepresentation] = [:]
+    private var identifierEntryRepresentationDictionary: [String : EntryRepresentation] = [:]
     
     let context: NSManagedObjectContext
 }
