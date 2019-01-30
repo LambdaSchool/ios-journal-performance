@@ -51,7 +51,7 @@ class CoreDataImporter {
                 
             } else {
                 // the fetch request returned no results, meaning there was nothing in core data,
-                // meaning all we have to do is just create new entries from the entry representation
+                // meaning all we have to do is just create new entries from each entry representation
                 
                 for entryRep in entryRepresentations {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
@@ -70,28 +70,6 @@ class CoreDataImporter {
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
     }
-    
-//    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-//
-//        // getting the optional(indentifer) that was passed
-//        guard let identifier = identifier else { return nil }
-//
-//        // creating an Entry NSFetchRequest
-//        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-//        // creating an NSPredicate that looks for a matching identifier in the persistent store
-//        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
-//
-//        // create a entry and assign it to nil
-//        var result: Entry? = nil
-//
-//        // in the current (background) context, perform
-//        do {
-//            result = try context.fetch(fetchRequest).first
-//        } catch {
-//            NSLog("Error fetching single entry: \(error)")
-//        }
-//        return result
-//    }
 
     let context: NSManagedObjectContext
 }

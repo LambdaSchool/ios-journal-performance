@@ -19,8 +19,11 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         self.refreshControl = refreshControl
         
         let start = CFAbsoluteTimeGetCurrent()
+        
         print(start)
+//        refreshState = true
         refresh(nil)
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -44,6 +47,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
                 self.refreshControl?.endRefreshing()
                 let stop = CFAbsoluteTimeGetCurrent()
                 print(stop)
+//                self.refreshState = false
             }
         }
     }
@@ -153,12 +157,18 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Properties
     
     let entryController = EntryController()
+//    var refreshState : Bool = false
     
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
+        
+//        if refreshState == true {
+//            moc.reset()
+//        }
+        
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
