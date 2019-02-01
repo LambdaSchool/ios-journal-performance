@@ -21,7 +21,6 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let start = CFAbsoluteTimeGetCurrent()
         
         print(start)
-        refreshState = true
         refresh(nil)
         
     }
@@ -41,13 +40,13 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
+            self.fetchedResultsController = self.makeFetchedResultsController()
             
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
                 let stop = CFAbsoluteTimeGetCurrent()
                 print(stop)
-                self.refreshState = false
             }
         }
     }
@@ -157,18 +156,15 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Properties
     
     let entryController = EntryController()
-    var refreshState : Bool = false
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> =  makeFetchedResultsController()
+    
+    private func makeFetchedResultsController() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
-        
-        if refreshState == true {
-            moc.reset()
-        }
-        
+        moc.reset()
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
@@ -176,6 +172,6 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         try! frc.performFetch()
         
         return frc
-    }()
+    }
     
 }
