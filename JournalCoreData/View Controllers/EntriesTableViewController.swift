@@ -18,7 +18,11 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
         
+        let start = CFAbsoluteTimeGetCurrent()
+        
+        print(start)
         refresh(nil)
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -36,10 +40,13 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
+            self.fetchedResultsController = self.makeFetchedResultsController()
             
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                let stop = CFAbsoluteTimeGetCurrent()
+                print(stop)
             }
         }
     }
@@ -68,7 +75,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             
             let entry = fetchedResultsController.object(at: indexPath)
@@ -150,11 +157,14 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     let entryController = EntryController()
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> =  makeFetchedResultsController()
+    
+    private func makeFetchedResultsController() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
+        moc.reset()
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
@@ -162,6 +172,6 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         try! frc.performFetch()
         
         return frc
-    }()
+    }
     
 }

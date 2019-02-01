@@ -21,6 +21,10 @@ class CoreDataStack {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
+        
+        // Without this line, the table view will never update.
+        // But everything will be there if we closed the app and reopen it b/c it will then get loaded from core data.
+//        container.viewContext.automaticallyMergesChangesFromParent = true
         return container
     }()
     
