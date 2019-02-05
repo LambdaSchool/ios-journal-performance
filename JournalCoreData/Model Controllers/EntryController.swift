@@ -12,6 +12,8 @@ import CoreData
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
+    
+    
         
     func createEntry(with title: String, bodyText: String, mood: String) {
         
@@ -117,6 +119,7 @@ class EntryController {
                 return
             }
         }.resume()
+        
     }
     
     func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
