@@ -22,6 +22,7 @@
 		46AA32ED2121315F003AC495 /* EntryDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32EC2121315F003AC495 /* EntryDetailViewController.swift */; };
 		46AA32EF21213184003AC495 /* EntryTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32EE21213184003AC495 /* EntryTableViewCell.swift */; };
 		46AA32F121213236003AC495 /* TimestampFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32F021213236003AC495 /* TimestampFormatter.swift */; };
+		4C0BA252220A4EF00029A858 /* PerformanceNotes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0BA251220A4EF00029A858 /* PerformanceNotes.swift */; };
 		9D6A752921477CC100A4A0C3 /* CoreDataImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6A752821477CC100A4A0C3 /* CoreDataImporter.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,6 +45,7 @@
 		46AA32EE21213184003AC495 /* EntryTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryTableViewCell.swift; sourceTree = "<group>"; };
 		46AA32F021213236003AC495 /* TimestampFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampFormatter.swift; sourceTree = "<group>"; };
 		46F9C2242122456400E7FF73 /* JournalCoreData 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "JournalCoreData 2.xcdatamodel"; sourceTree = "<group>"; };
+		4C0BA251220A4EF00029A858 /* PerformanceNotes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceNotes.swift; sourceTree = "<group>"; };
 		9D6A752821477CC100A4A0C3 /* CoreDataImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataImporter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -83,6 +85,7 @@
 				46AA32F4212132AD003AC495 /* View Controllers */,
 				46AA32F821213317003AC495 /* Storyboards */,
 				46AA32F72121330D003AC495 /* Resources */,
+				4C0BA251220A4EF00029A858 /* PerformanceNotes.swift */,
 			);
 			path = JournalCoreData;
 			sourceTree = "<group>";
@@ -225,6 +228,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C0BA252220A4EF00029A858 /* PerformanceNotes.swift in Sources */,
 				462A2D592122C6DF00E7FF73 /* Mood.swift in Sources */,
 				4697668C2123E1A400E7FF73 /* Entry+Codable.swift in Sources */,
 				46AA32EF21213184003AC495 /* EntryTableViewCell.swift in Sources */,
