@@ -16,6 +16,8 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
+        print("start syncing")
+        
         self.context.perform {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
@@ -28,6 +30,7 @@ class CoreDataImporter {
                 }
             }
             completion(nil)
+            print("finish syncing")
         }
     }
     
