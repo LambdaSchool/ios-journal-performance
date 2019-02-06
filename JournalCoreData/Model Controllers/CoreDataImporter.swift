@@ -15,18 +15,20 @@ class CoreDataImporter {
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
-        
+        print("Started \(Date())")
+         let entry = self.fetchSingleEntryFromPersistentStore(entry: entries, in: self.context)
         self.context.perform {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                let entry = entry![identifier]
                 if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                 self.update(entry: entry, with: entryRep)
+               } else if entry == nil {
+                   _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            print("Finished \(Date())")
             completion(nil)
         }
     }
@@ -39,19 +41,28 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    private func fetchSingleEntryFromPersistentStore(entry: [EntryRepresentation], in context: NSManagedObjectContext) -> [String: Entry]? {
         
-        guard let identifier = identifier else { return nil }
+        let identifiers: [String] = entry.compactMap { ($0.identifier) }
+        
+        
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
-        var result: Entry? = nil
+        var result: [String: Entry] = [:]
+       //var results: [Entry] = []
         do {
-            result = try context.fetch(fetchRequest).first
+           
+           let results = try context.fetch(fetchRequest)
+            for entry in results {
+                result[entry.identifier!] = entry
+            }
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
+        
+        
         return result
     }
     

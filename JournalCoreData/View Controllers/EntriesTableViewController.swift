@@ -19,6 +19,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         self.refreshControl = refreshControl
         
         refresh(nil)
+       
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -28,7 +29,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     }
     
     // MARK: - Actions
-    
+   
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
         entryController.refreshEntriesFromServer { error in
@@ -40,6 +41,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                
             }
         }
     }
@@ -53,7 +55,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     override func numberOfSections(in tableView: UITableView) -> Int {
         return fetchedResultsController.sections?.count ?? 1
     }
-    
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return fetchedResultsController.sections?[section].numberOfObjects ?? 0
     }
@@ -64,11 +66,11 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         
         let entry = fetchedResultsController.object(at: indexPath)
         cell.entry = entry
-        
+       
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             
             let entry = fetchedResultsController.object(at: indexPath)
@@ -151,6 +153,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     let entryController = EntryController()
     
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+      
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
