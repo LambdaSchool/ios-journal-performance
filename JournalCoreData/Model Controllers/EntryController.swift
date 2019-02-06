@@ -12,7 +12,8 @@ import CoreData
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
-        
+    
+    // used to create a new entry
     func createEntry(with title: String, bodyText: String, mood: String) {
         
         let entry = Entry(title: title, bodyText: bodyText, mood: mood)
@@ -22,6 +23,7 @@ class EntryController {
         saveToPersistentStore()
     }
     
+    // used to update an existing entry to Firebase and Core Data
     func update(entry: Entry, title: String, bodyText: String, mood: String) {
         
         entry.title = title
@@ -34,6 +36,7 @@ class EntryController {
         saveToPersistentStore()
     }
     
+    // used to delete an entry
     func delete(entry: Entry) {
         
         CoreDataStack.shared.mainContext.delete(entry)
@@ -41,6 +44,7 @@ class EntryController {
         saveToPersistentStore()
     }
     
+    // used to save an entry on firebase
     private func put(entry: Entry, completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         let identifier = entry.identifier ?? UUID().uuidString
@@ -67,6 +71,7 @@ class EntryController {
         }.resume()
     }
     
+    // used to delete an entry from firebase
     func deleteEntryFromServer(entry: Entry, completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         guard let identifier = entry.identifier else {
@@ -90,6 +95,7 @@ class EntryController {
         }.resume()
     }
     
+    // used to fetch all the entries from firebase and put them in an array of entry representation called entryReps
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
@@ -119,6 +125,7 @@ class EntryController {
         }.resume()
     }
     
+    // used to update Core Data in the background with changes made on Firebase
     func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
