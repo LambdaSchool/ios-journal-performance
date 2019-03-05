@@ -16,7 +16,7 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
-        self.context.perform {
+        self.context.performAndWait { //changed from perform
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
@@ -45,6 +45,7 @@ class CoreDataImporter {
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
         
         var result: Entry? = nil
         do {

@@ -93,6 +93,7 @@ class EntryController {
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
+        print("start syncing")
         
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
             
@@ -111,11 +112,14 @@ class EntryController {
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)
+                print("syncing ended")
+
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
                 completion(nil, error)
                 return
             }
+            
         }.resume()
     }
     
