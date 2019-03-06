@@ -19,6 +19,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         self.refreshControl = refreshControl
         
         refresh(nil)
+       // entryController.fetchEntriesFromServer()
     }
     
     override func viewWillAppear(_ animated: Bool) {

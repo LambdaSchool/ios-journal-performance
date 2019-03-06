@@ -14,19 +14,24 @@ class CoreDataImporter {
         self.context = context
     }
     
-    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+    func sync(entries: [EntryRepresentation], in context: NSManagedObjectContext, completion: @escaping (Error?) -> Void = { _ in }) {
         
-        self.context.perform {
+       // let moc = CoreDataStack.shared.mainContext
+        
+       context.perform {
+            let startTime = CFAbsoluteTimeGetCurrent()
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: context)
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
                 } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                    _ = Entry(entryRepresentation: entryRep, context: context)
                 }
             }
+            let difference = CFAbsoluteTimeGetCurrent() - startTime
+            print(difference)
             completion(nil)
         }
     }
@@ -57,3 +62,46 @@ class CoreDataImporter {
     
     let context: NSManagedObjectContext
 }
+/*
+ 
+ func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+ 
+ DispatchQueue.global().async {
+ let entriesWithID = entries.filter { $0.identifier != nil}
+ let entryIDs = entries.compactMap { $0.identifier }
+ let entriesByID = Dictionary(uniqueKeysWithValues: zip(entryIDs, entriesWithID))
+ var entriesToCreate = entriesByID
+ 
+ let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+ fetchRequest.predicate = NSPredicate(format: "identifier IN %@", entryIDs)
+ self.context.perform {
+ do {
+ // Update existing entries
+ let existingEntries = try self.context.fetch(fetchRequest)
+ for entry in existingEntries {
+ guard let id = entry.identifier,
+ let representation = entriesByID[id] else { continue }
+ self.update(entry: entry, with: representation)
+ 
+ entriesToCreate.removeValue(forKey: id)
+ }
+ 
+ // Create new entries
+ for rep in entriesToCreate.values {
+ _ = entry(key: rep, data: self.context)
+ }
+ completion(nil)
+ } catch {
+ completion(error)
+ }
+ }
+ }
+ }
+ 
+ private func update(entry: Entry, with entryRep: EntryRepresentation) {
+ entry.title = entryRep.title
+ entry.bodyText = entryRep.bodyText
+ entry.mood = entryRep.mood
+ entry.timestamp = entryRep.timestamp
+ entry.identifier = entryRep.identifier
+ } */
