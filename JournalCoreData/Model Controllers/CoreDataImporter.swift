@@ -17,11 +17,12 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         let start = CFAbsoluteTimeGetCurrent()
+        let localStoreEntries = fetchEntriesFromPersistentStore(entries: entries, context: self.context)
         self.context.perform {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                let entry = localStoreEntries[identifier]
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
                 } else if entry == nil {
@@ -30,7 +31,7 @@ class CoreDataImporter {
             }
             let end = CFAbsoluteTimeGetCurrent() - start
             // Add print statement after syncing finishes
-            print("Syncing complete. Duration: \(end) seconds")
+            print("Syncing complete. Time: \(end) seconds")
             completion(nil)
         }
     }
@@ -43,21 +44,47 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
+    private func fetchEntriesFromPersistentStore(entries: [EntryRepresentation], context: NSManagedObjectContext) -> [String: Entry] {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        let identifiers: [String] = entries.compactMap { $0.identifier }
+        // Fetch request predicates can use the `IN` operator to check for a value in an array. e.g. `NSPredicate("identifier IN %@", arrayOfIdentifiers)`.
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
+        // set up values as a dictionary for more performant code (at cost to memory)
+        var result: [String: Entry] = [:]
         
-        var result: Entry? = nil
         do {
-            result = try context.fetch(fetchRequest).first
-        } catch {
-            NSLog("Error fetching single entry: \(error)")
+            let fetchedEntries = try context.fetch(fetchRequest)
+            
+            for entry in fetchedEntries {
+                result[entry.identifier!] = entry
+            }
         }
+        catch {
+            NSLog("Error fetching entries: \(error)")
+        }
+        
         return result
+        
+        
     }
+    
+    
+    
+//    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+//
+//        guard let identifier = identifier else { return nil }
+//
+//        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+//        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+//
+//        var result: Entry? = nil
+//        do {
+//            result = try context.fetch(fetchRequest).first
+//        } catch {
+//            NSLog("Error fetching single entry: \(error)")
+//        }
+//        return result
+//    }
     
     let context: NSManagedObjectContext
 }
