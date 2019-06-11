@@ -21,7 +21,7 @@ class CoreDataImporter {
 			let existingEntries = self.fetchMultipleEntrieFromPersistentStore(with: identifiers, in: self.context)
 			for entryRep in entries {
 				guard let identifier = entryRep.identifier else { continue }
-				if let existingEntry = existingEntries[identifier], existingEntry != entryRep {
+				if let existingEntry = existingEntries[identifier] {
 					self.update(entry: existingEntry, with: entryRep)
 				} else {
 					_ = Entry(entryRepresentation: entryRep, context: self.context)
