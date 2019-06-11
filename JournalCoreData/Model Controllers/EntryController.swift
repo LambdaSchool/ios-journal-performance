@@ -120,6 +120,14 @@ class EntryController {
     }
     
     func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
+        // MARK: - Time for performance testing
+        let time = Date()
+        let timeFomat = DateFormatter()
+        timeFomat.dateFormat = "HH:mm:ss"
+        print("Time started: \(timeFomat.string(from: time))")
+        // MARK: - END
+        
+        
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
             guard let representations = representations else { return }
