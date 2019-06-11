@@ -17,16 +17,35 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
+            
+            var entriesFromServer = entries
+            let identifiers = entries.compactMap { $0.identifier }
+            
+            let entriesFromPersistentStore = self.fetchSingleEntryFromPersistentStore(with: identifiers, in: self.context)
+            guard let entriesFromPersistent = entriesFromPersistentStore else { return }
+            
+            for (index, entryRep) in entries.enumerated() {
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                for entryFromPersistent in entriesFromPersistent {
+                    
+                    if entryRep.identifier == entryFromPersistent.identifier {
+                        self.update(entry: entryFromPersistent, with: entryRep)
+                        entriesFromServer.remove(at: index)
+                    }
                 }
             }
+            
+            for entry in entriesFromServer {
+                _ = Entry(entryRepresentation: entry, context: self.context)
+            }
+            
+            
+            // MARK: - Time for performance testing
+            let time = Date()
+            let timeFomat = DateFormatter()
+            timeFomat.dateFormat = "HH:mm:ss"
+            print("Time Ended: \(timeFomat.string(from: time))")
+            // MARK: - END
             completion(nil)
         }
     }
@@ -39,20 +58,20 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    private func fetchSingleEntryFromPersistentStore(with identifiers: [String]?, in context: NSManagedObjectContext) -> [Entry]? {
         
-        guard let identifier = identifier else { return nil }
+        guard let identifiers = identifiers else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
-        var result: Entry? = nil
+        var results: [Entry]? = nil
         do {
-            result = try context.fetch(fetchRequest).first
+            results = try context.fetch(fetchRequest)
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
-        return result
+        return results
     }
     
     let context: NSManagedObjectContext
