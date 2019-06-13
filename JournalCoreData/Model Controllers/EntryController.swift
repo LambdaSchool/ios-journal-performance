@@ -9,7 +9,8 @@
 import Foundation
 import CoreData
 
-let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
+let baseURL = URL(string: "https://ios-debugging-5720d.firebaseio.com/")!  // <-- Mine Firebase
+//let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
         
@@ -110,6 +111,7 @@ class EntryController {
 
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
+                
                 completion(entryReps, nil)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
