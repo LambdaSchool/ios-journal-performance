@@ -135,7 +135,7 @@ class EntryController {
         importer = CoreDataImporter(context: context)
 		
 		
-		let timer1 = Date()
+		
 		
 		importer?.sync(entries: representations) { (error) in
             if let error = error {
@@ -155,14 +155,6 @@ class EntryController {
                 }
             }
         }
-		
-		let timer2 = Date()
-
-		let syncDuration = timer2.timeIntervalSinceReferenceDate - timer1.timeIntervalSinceReferenceDate
-		
-		
-		print("Print Time To sync duration: \(syncDuration.description)")
-		
 		
     }
     
