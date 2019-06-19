@@ -58,8 +58,15 @@ class CoreDataImporter {
         fetchRequest.predicate = NSPredicate(format: "identifier IN %@", [identifier])
         
         var result: Entry? = nil
+		var resultDict: [String: Entry] = [:]
+		
         do {
-            result = try context.fetch(fetchRequest).first
+            let results = try context.fetch(fetchRequest)
+			
+			for entry in results {
+				resultDict[entry.identifier!] = entry
+				result = entry
+			}
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
