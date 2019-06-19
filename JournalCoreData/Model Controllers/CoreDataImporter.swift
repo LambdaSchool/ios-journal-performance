@@ -15,7 +15,8 @@ class CoreDataImporter {
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
-        
+		let timer1 = Date()
+		print("sync start")
         self.context.perform {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
@@ -27,6 +28,12 @@ class CoreDataImporter {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+			let timer2 = Date()
+			
+			let syncDuration = timer2.timeIntervalSinceReferenceDate - timer1.timeIntervalSinceReferenceDate
+
+			print("Print Time To sync duration: \(syncDuration.description)")
+			print("sync complete")
             completion(nil)
         }
     }
@@ -42,13 +49,24 @@ class CoreDataImporter {
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
         
         guard let identifier = identifier else { return nil }
-        
+		
+		
+		
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+		
+		
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", [identifier])
         
         var result: Entry? = nil
+		var resultDict: [String: Entry] = [:]
+		
         do {
-            result = try context.fetch(fetchRequest).first
+            let results = try context.fetch(fetchRequest)
+			
+			for entry in results {
+				resultDict[entry.identifier!] = entry
+				result = entry
+			}
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }

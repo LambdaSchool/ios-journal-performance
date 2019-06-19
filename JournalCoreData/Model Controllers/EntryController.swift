@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
+let baseURL = URL(string: "https://projects-779a2.firebaseio.com/")!
 
 class EntryController {
         
@@ -107,12 +107,12 @@ class EntryController {
                 completion(nil, NSError())
                 return
             }
-
+			print(data.count)
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)
             } catch {
-                NSLog("Error decoding JSON data: \(error)")
+                NSLog("Error decoding JSON data 420: \(error)")
                 completion(nil, error)
                 return
             }
@@ -133,7 +133,11 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
+		
+		
+		
+		
+		importer?.sync(entries: representations) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
@@ -151,6 +155,7 @@ class EntryController {
                 }
             }
         }
+		
     }
     
     func saveToPersistentStore() {        

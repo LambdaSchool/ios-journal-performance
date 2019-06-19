@@ -36,7 +36,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
-            
+		
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
