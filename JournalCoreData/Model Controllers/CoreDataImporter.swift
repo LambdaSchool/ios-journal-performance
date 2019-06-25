@@ -44,11 +44,17 @@ class CoreDataImporter {
         guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        //changed to identifier IN from ==
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", [identifier])
         
         var result: Entry? = nil
+        var resultDict: [String : Entry] = [:]
         do {
-            result = try context.fetch(fetchRequest).first
+            let results = try context.fetch(fetchRequest)// THIS LINE is taking the longest
+            for entry in results {
+                resultDict[entry.identifier!] = entry
+                result = entry
+            }
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
