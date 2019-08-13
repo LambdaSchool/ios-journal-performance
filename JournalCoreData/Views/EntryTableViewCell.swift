@@ -15,7 +15,11 @@ class EntryTableViewCell: UITableViewCell {
         
         titleLabel.text = entry.title
         bodyTextLabel.text = entry.bodyText
-        timestampLabel.text = TimestampFormatter.formatTimestamp(for: entry)
+        
+        if let timestamp = entry.timestamp {
+            timestampLabel.text = timestampFormatter.string(from: timestamp)
+        }
+        
     }
     
     var entry: Entry? {
@@ -23,6 +27,8 @@ class EntryTableViewCell: UITableViewCell {
             updateViews()
         }
     }
+    
+    let timestampFormatter = TimestampFormatter.dateFormatter
     
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var timestampLabel: UILabel!
