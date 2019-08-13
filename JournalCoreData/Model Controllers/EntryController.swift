@@ -35,8 +35,12 @@ class EntryController {
     }
     
     func delete(entry: Entry) {
+        let moc = CoreDataStack.shared.mainContext
         
-        CoreDataStack.shared.mainContext.delete(entry)
+        moc.perform {
+            moc.delete(entry)
+        }
+        
         deleteEntryFromServer(entry: entry)
         saveToPersistentStore()
     }
@@ -153,11 +157,15 @@ class EntryController {
         }
     }
     
-    func saveToPersistentStore() {        
-        do {
-            try CoreDataStack.shared.mainContext.save()
-        } catch {
-            NSLog("Error saving managed object context: \(error)")
+    func saveToPersistentStore() {
+        let moc = CoreDataStack.shared.container.newBackgroundContext()
+        
+        moc.perform {
+            do {
+                try moc.save()
+            } catch {
+                NSLog("Error saving managed object context: \(error)")
+            }
         }
     }
     
