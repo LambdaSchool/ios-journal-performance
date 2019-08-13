@@ -24,7 +24,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        tableView.reloadData()
+//        tableView.reloadData()
     }
     
     // MARK: - Actions
