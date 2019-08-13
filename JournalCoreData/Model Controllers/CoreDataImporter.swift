@@ -22,7 +22,7 @@ class CoreDataImporter {
             let entriesToUpdate = self.fetchEntriesFromPersistentStore(with: entryIdentifiers, in: self.context)
             
             for entry in entriesToUpdate {
-                if let entryRep = entryDict[entry.identifier], entry != entryRep {
+                if let entryRep = entryDict[entry.identifier] {
                     self.update(entry: entry, with: entryRep)
                 }
                 
