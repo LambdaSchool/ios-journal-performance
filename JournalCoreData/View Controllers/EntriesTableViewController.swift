@@ -38,6 +38,11 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                do {
+                    try self.fetchedResultsController.performFetch()
+                } catch {
+                    NSLog("error performing manual fetch for resultscontroller: \(error)")
+                }
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
@@ -156,6 +161,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "mood", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
+        moc.reset()
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
