@@ -38,8 +38,15 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                print("start syncing")
+                let startTime = Date()
+                CoreDataStack.shared.mainContext.reset()
+                self.fetchedResultsController = self.newFetchedResultsController()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                let endTime = Date().timeIntervalSince(startTime)
+                
+                print("finished syncing: \(endTime)")
             }
         }
     }
@@ -68,7 +75,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             
             let entry = fetchedResultsController.object(at: indexPath)
@@ -161,7 +168,21 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         
         try! frc.performFetch()
         
-        return frc
+        return newFetchedResultsController()
     }()
+    
+    private func newFetchedResultsController() -> NSFetchedResultsController<Entry> {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "mood", ascending: false), NSSortDescriptor(key: "timestamp", ascending: false)]
+        
+        let moc = CoreDataStack.shared.mainContext
+        let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
+        
+        frc.delegate = self
+        
+        try! frc.performFetch()
+        
+        return frc
+    }
     
 }
