@@ -24,7 +24,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        tableView.reloadData()
+//        tableView.reloadData()
     }
     
     // MARK: - Actions
@@ -38,7 +38,14 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
-                self.tableView.reloadData()
+                CoreDataStack.shared.mainContext.reset()
+                
+                do {
+                    try self.fetchedResultsController.performFetch()
+                } catch {
+                    NSLog("error performing manual fetch for resultscontroller: \(error)")
+                }
+//                self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
         }
@@ -153,6 +160,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "mood", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
