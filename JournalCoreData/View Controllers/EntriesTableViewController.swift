@@ -146,6 +146,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         }
     }
     
+    
+    
     // MARK: - Properties
     
     let entryController = EntryController()
