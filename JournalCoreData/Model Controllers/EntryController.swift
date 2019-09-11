@@ -62,7 +62,6 @@ class EntryController {
                 completion(error)
                 return
             }
-            
             completion(nil)
         }.resume()
     }
@@ -107,7 +106,6 @@ class EntryController {
                 completion(nil, NSError())
                 return
             }
-
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)
@@ -131,15 +129,13 @@ class EntryController {
     private func updateEntries(with representations: [EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
-        
-        importer = CoreDataImporter(context: context)
+        importer = CoreDataImporter(context:context)
         importer?.sync(entries: representations) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
                 return
             }
-            
             context.perform {
                 do {
                     try context.save()

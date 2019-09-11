@@ -21,6 +21,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refresh(nil)
     }
     
+    var cache = Cache<String, Entry>()
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -61,10 +63,11 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "EntryCell", for: indexPath) as? EntryTableViewCell else { return UITableViewCell() }
-        
         let entry = fetchedResultsController.object(at: indexPath)
         cell.entry = entry
-        
+        if let id = entry.identifier {
+        cache.cache(value: entry, for: id)
+        }
         return cell
     }
     
