@@ -17,13 +17,34 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            var identifiers: [String] = []
+            var existingEntriesDict: [String : Entry] = [:]
+            
+            
             for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
+                guard let identifier = entryRep.identifier else { continue }
+                identifiers.append(identifier)
+               
+            }
+            
+            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
+            
+            do {
+                let existingEntries = try self.context.fetch(fetchRequest)
+                for entry in existingEntries {
+                    guard let identifier = entry.identifier else { continue }
+                    existingEntriesDict[identifier] = entry
+                }
+            } catch {
+                NSLog("Error fetching single entry: \(error)")
+            }
+            
+            for entryRep in entries {
+                if let identifier = entryRep.identifier, let entry = existingEntriesDict[identifier], entry != entryRep {
                     self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
+                } else if let identifier = entryRep.identifier, existingEntriesDict[identifier] == nil {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
@@ -39,21 +60,21 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
-        
-        var result: Entry? = nil
-        do {
-            result = try context.fetch(fetchRequest).first
-        } catch {
-            NSLog("Error fetching single entry: \(error)")
-        }
-        return result
-    }
+//    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+//
+//        guard let identifier = identifier else { return nil }
+//
+//        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+//        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+//
+//        var result: Entry? = nil
+//        do {
+//            result = try context.fetch(fetchRequest).first
+//        } catch {
+//            NSLog("Error fetching single entry: \(error)")
+//        }
+//        return result
+//    }
     
     let context: NSManagedObjectContext
 }
