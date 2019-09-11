@@ -22,7 +22,9 @@ class CoreDataImporter {
 			for entryRep in entries {
 				guard let identifier = entryRep.identifier else { continue }
 				if let entry = existingEntries[identifier] {
-					self.update(entry: entry, with: entryRep)
+					if entry != entryRep {
+						self.update(entry: entry, with: entryRep)
+					}
 				} else {
 					_ = Entry(entryRepresentation: entryRep, context: self.context)
 				}
