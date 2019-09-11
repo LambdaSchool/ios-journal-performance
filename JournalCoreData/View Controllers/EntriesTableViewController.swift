@@ -17,13 +17,11 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
-        
         refresh(nil)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
         tableView.reloadData()
     }
     
@@ -38,6 +36,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+				self.resetFetchedResultsController()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
@@ -149,10 +148,14 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Properties
     
     let entryController = EntryController()
+
+	lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+		return generateFetchedResultsController()
+	}()
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    private func generateFetchedResultsController() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "mood", ascending: false), NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
@@ -162,6 +165,10 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         try! frc.performFetch()
         
         return frc
-    }()
-    
+    }
+
+	private func resetFetchedResultsController() {
+		CoreDataStack.shared.mainContext.reset()
+		fetchedResultsController = generateFetchedResultsController()
+	}
 }
