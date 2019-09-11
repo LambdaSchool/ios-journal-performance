@@ -95,7 +95,12 @@ class EntryController {
         let requestURL = baseURL.appendingPathExtension("json")
         
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
-            
+            let start = CFAbsoluteTimeGetCurrent()
+			defer {
+				let end = CFAbsoluteTimeGetCurrent() - start
+				print("Took \(end) seconds to fetch entries")
+			}
+			
             if let error = error {
                 NSLog("Error fetching entries from server: \(error)")
                 completion(nil, error)
