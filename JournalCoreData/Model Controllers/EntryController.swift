@@ -91,7 +91,12 @@ class EntryController {
     }
     
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
-        
+        let start = CFAbsoluteTimeGetCurrent()
+		defer {
+			let end = CFAbsoluteTimeGetCurrent() - start
+			print("Took \(end) time to fetch entries")
+		}
+
         let requestURL = baseURL.appendingPathExtension("json")
         
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
