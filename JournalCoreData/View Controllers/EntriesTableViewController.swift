@@ -13,6 +13,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("Syncing starting now: \(Date())")
         
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
@@ -25,6 +26,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         super.viewWillAppear(animated)
         
         tableView.reloadData()
+        
     }
     
     // MARK: - Actions
@@ -40,6 +42,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                print("Syncing ending: \(Date())")
             }
         }
     }
