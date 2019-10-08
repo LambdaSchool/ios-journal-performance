@@ -12,6 +12,8 @@ import CoreData
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
+    
+    private var importer: CoreDataImporter?
         
     func createEntry(with title: String, bodyText: String, mood: String) {
         
@@ -155,11 +157,9 @@ class EntryController {
     
     func saveToPersistentStore() {        
         do {
-            try CoreDataStack.shared.mainContext.save()
+            try CoreDataStack.shared.backgroundContext.save()
         } catch {
             NSLog("Error saving managed object context: \(error)")
         }
     }
-    
-    private var importer: CoreDataImporter?
 }
