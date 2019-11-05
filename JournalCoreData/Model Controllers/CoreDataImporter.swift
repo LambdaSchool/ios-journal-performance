@@ -17,16 +17,25 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            var identifiersToFetch: [String] = []
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                identifiersToFetch.append(identifier)
+            }
+            
+            if let fetchedEntries = self.fetchEntriesFromPersistentStore(with: identifiersToFetch, in: self.context) {
+                for entryRep in entries {
+                    guard let identifier = entryRep.identifier else { continue }
+
+                    let entry = fetchedEntries.first(where: { $0.identifier == identifier })
+                    if let entry = entry, entry != entryRep {
+                        self.update(entry: entry, with: entryRep)
+                    } else if entry == nil {
+                        _ = Entry(entryRepresentation: entryRep, context: self.context)
+                    }
                 }
             }
+            
             completion(nil)
         }
     }
@@ -51,6 +60,20 @@ class CoreDataImporter {
             result = try context.fetch(fetchRequest).first
         } catch {
             NSLog("Error fetching single entry: \(error)")
+        }
+        return result
+    }
+    
+    private func fetchEntriesFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> [Entry]? {
+                
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
+        
+        var result: [Entry]? = nil
+        do {
+            result = try context.fetch(fetchRequest)
+        } catch {
+            NSLog("Error fetching entries: \(error)")
         }
         return result
     }
