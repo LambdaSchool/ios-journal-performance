@@ -20,7 +20,7 @@ extension Entry {
         
         
         self.init(context: context)
-        
+        //not sure where to start yet
         self.title = title
         self.bodyText = bodyText
         self.mood = mood
