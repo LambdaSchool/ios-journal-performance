@@ -18,8 +18,9 @@ extension Entry {
                      identifier: String = UUID().uuidString,
                      context: NSManagedObjectContext = CoreDataStack.shared.mainContext) {
         
-        self.init(context: context)
         
+        self.init(context: context)
+        //not sure where to start yet
         self.title = title
         self.bodyText = bodyText
         self.mood = mood
