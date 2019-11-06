@@ -18,15 +18,22 @@ class CoreDataImporter {
         
         self.context.perform {
             let start = CACurrentMediaTime()
+
+            let identifiersToFetch = entries.map({ $0.identifier })
+            let representationByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entries))
+            var entryToCreate = representationByID
+            let entries = self.fetchEntriesFromPersistentStore(with: identifiersToFetch, in: self.context)
+            
             for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
-                }
+                guard let entryRep = entryRep,
+                        let identifier = entryRep.identifier,
+                        let representation = representationByID[identifier] else { continue }
+                self.update(entry: entryRep, with: representation)
+                entryToCreate.removeValue(forKey: identifier)
+            }
+            
+            for representation in entryToCreate.values {
+                _ = Entry(entryRepresentation: representation, context: self.context)
             }
             print("\(CACurrentMediaTime() - start) to complete sync method")
             completion(nil)
@@ -41,19 +48,18 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        guard let identifier = identifier else { return nil }
+    private func fetchEntriesFromPersistentStore(with identifiers: [String?], in context: NSManagedObjectContext) -> [Entry?] {
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
-        var result: Entry? = nil
+        var results: [Entry?] = [nil]
         do {
-            result = try context.fetch(fetchRequest).first
+            results = try context.fetch(fetchRequest)
         } catch {
-            NSLog("Error fetching single entry: \(error)")
+            NSLog("Error fetching entries: \(error)")
         }
-        return result
+        return results
     }
     
     let context: NSManagedObjectContext
