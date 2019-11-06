@@ -6,7 +6,7 @@
 //  Copyright © 2018 Lambda School. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import CoreData
 
 class CoreDataImporter {
@@ -17,6 +17,7 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            let start = CACurrentMediaTime()
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
@@ -27,6 +28,7 @@ class CoreDataImporter {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            print("\(CACurrentMediaTime() - start) to complete sync method")
             completion(nil)
         }
     }
@@ -40,7 +42,6 @@ class CoreDataImporter {
     }
     
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
         guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
