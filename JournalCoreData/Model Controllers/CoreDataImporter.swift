@@ -14,16 +14,15 @@ class CoreDataImporter {
         self.context = context
     }
     
-    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+    func sync(entryReps: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
-            for entryRep in entries {
+            let entries = self.fetchAllEntriesFromPersistenStore(in: self.context)
+            for entryRep in entryReps {
                 guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
+                if let index = entries.firstIndex(where: { $0.identifier == identifier }) {
+                    self.update(entry: entries[index], with: entryRep)
+                } else {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
@@ -37,6 +36,18 @@ class CoreDataImporter {
         entry.mood = entryRep.mood
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
+    }
+    
+    private func fetchAllEntriesFromPersistenStore(in context: NSManagedObjectContext) -> [Entry] {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        
+        do {
+            let entries = try context.fetch(fetchRequest)
+            return entries
+        } catch {
+            print("Error fetching all entries: \(error)")
+        }
+        return []
     }
     
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {

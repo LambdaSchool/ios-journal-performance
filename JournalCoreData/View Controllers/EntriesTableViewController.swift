@@ -31,7 +31,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
-        entryController.refreshEntriesFromServer { error in
+        print("Started refreshing at \(Date())")
+        entryController.refreshEntriesFromServer(context: fetchedResultsController.managedObjectContext) { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
                 return
@@ -40,7 +41,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                print("Ended refreshing at \(Date())")
             }
+
         }
     }
     
