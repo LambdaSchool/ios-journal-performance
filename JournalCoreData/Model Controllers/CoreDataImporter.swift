@@ -42,10 +42,12 @@ class CoreDataImporter {
     
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, entries: [EntryRepresentation], in context: NSManagedObjectContext) -> Entry? {
         
-//        guard let identifier = entries.first?.identifier else { return nil }
+        var identifiers: [String?] = []
+        guard let identifier = identifier else { return nil }
+        identifiers = entries.map({ $0.identifier })
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", entries.map({ $0.identifier }))
+        fetchRequest.predicate = NSPredicate(format: "\(identifier) IN %@", identifiers)
         
         var result: Entry? = nil
         do {
