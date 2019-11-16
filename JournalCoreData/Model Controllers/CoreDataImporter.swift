@@ -47,7 +47,7 @@ class CoreDataImporter {
         identifiers = entries.map({ $0.identifier })
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "\(identifier) IN %@", identifiers)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
         var result: Entry? = nil
         do {
