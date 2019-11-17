@@ -17,10 +17,12 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            var identifiers: [String] = []
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
+                identifiers.append(identifier)
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                let entry = self.fetchSingleEntryFromPersistentStore(with: identifiers, in: self.context)
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
                 } else if entry == nil {
@@ -39,12 +41,10 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
+    private func fetchSingleEntryFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> Entry? {
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
         var result: Entry? = nil
         do {
