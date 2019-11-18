@@ -38,6 +38,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                let moc = CoreDataStack.shared.mainContext
+                moc.reset()
+                try! self.fetchedResultsController.performFetch()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
@@ -155,6 +158,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
+//        moc.automaticallyMergesChangesFromParent = true
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
