@@ -14,26 +14,33 @@ class CoreDataImporter {
         self.context = context
     }
     
+    var entryDic: [String: Entry] = [:]
+    
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
             let start = DispatchTime.now()
             
-            if self.entryExists(context: self.context) {
-                for entryRep in entries {
-                    guard let identifier = entryRep.identifier else { continue }
-                    let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                    if let entry = entry, entry != entryRep {
-                        self.update(entry: entry, with: entryRep)
-                    } else if entry == nil {
-                       _ = Entry(entryRepresentation: entryRep, context: self.context)
-                    }
-                }
-            } else {
-                for entryRep in entries {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+            // get the identifiers using compactMap so it won't be an array of optional String
+            let identifiers = entries.compactMap { $0.identifier }
+            
+            let coreDataEntries = self.fetchAllEntries(with: identifiers, in: self.context)
+            
+            for entry in coreDataEntries {
+                guard let identifier = entry.identifier else { continue }
+                self.entryDic[identifier] = entry
+            }
+            
+            for entryRep in entries {
+                guard let identifier = entryRep.identifier else { continue }
+                let entry = self.entryDic[identifier]
+                if let entry = entry, entry != entryRep {
+                    self.update(entry: entry, with: entryRep)
+                } else if entry == nil {
+                   _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            
 
             completion(nil)
             let end = DispatchTime.now()
@@ -61,6 +68,20 @@ class CoreDataImporter {
         entry.mood = entryRep.mood
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
+    }
+    
+    private func fetchAllEntries(with identifiers: [String], in context: NSManagedObjectContext) -> [Entry] {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
+        
+        var results: [Entry] = []
+        do {
+            results = try context.fetch(fetchRequest)
+        } catch {
+            NSLog("Error fetching single entry: \(error)")
+        }
+        
+        return results
     }
     
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
