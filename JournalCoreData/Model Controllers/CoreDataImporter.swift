@@ -22,19 +22,35 @@ class CoreDataImporter {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
+                // check the count first, if it's exist
+                if self.entryExists(identifier: identifier, context: self.context) {
+                    let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                    if let entry = entry, entry != entryRep {
+                        self.update(entry: entry, with: entryRep)
+                    }
+                } else { // if it's a yes, then do the fetch and update
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+
             completion(nil)
             let end = DispatchTime.now()
             
             let nanoTime = end.uptimeNanoseconds - start.uptimeNanoseconds
             let timeInterval = Double(nanoTime) / 1_000_000_000
             print("Time to sync is \(timeInterval) seconds.")
+        }
+    }
+    
+    private func entryExists(identifier: String, context: NSManagedObjectContext) -> Bool {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count > 0
+        } catch {
+            return false
         }
     }
     
