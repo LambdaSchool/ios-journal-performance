@@ -19,16 +19,18 @@ class CoreDataImporter {
         self.context.perform {
             let start = DispatchTime.now()
             
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                
-                // check the count first, if it's exist
-                if self.entryExists(identifier: identifier, context: self.context) {
+            if self.entryExists(context: self.context) {
+                for entryRep in entries {
+                    guard let identifier = entryRep.identifier else { continue }
                     let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
                     if let entry = entry, entry != entryRep {
                         self.update(entry: entry, with: entryRep)
+                    } else if entry == nil {
+                       _ = Entry(entryRepresentation: entryRep, context: self.context)
                     }
-                } else { // if it's a yes, then do the fetch and update
+                }
+            } else {
+                for entryRep in entries {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
@@ -42,9 +44,8 @@ class CoreDataImporter {
         }
     }
     
-    private func entryExists(identifier: String, context: NSManagedObjectContext) -> Bool {
+    private func entryExists(context: NSManagedObjectContext) -> Bool {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
         
         do {
             let count = try context.count(for: fetchRequest)
