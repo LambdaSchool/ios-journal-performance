@@ -17,6 +17,8 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            let start = DispatchTime.now()
+            
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
@@ -28,6 +30,11 @@ class CoreDataImporter {
                 }
             }
             completion(nil)
+            let end = DispatchTime.now()
+            
+            let nanoTime = end.uptimeNanoseconds - start.uptimeNanoseconds
+            let timeInterval = Double(nanoTime) / 1_000_000_000
+            print("Time to sync is \(timeInterval) seconds.")
         }
     }
     
