@@ -120,6 +120,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         case .delete:
             guard let indexPath = indexPath else { return }
             tableView.deleteRows(at: [indexPath], with: .automatic)
+        @unknown default:
+            fatalError("Unexpected NSFetchedResultsChangeType at \(#file): line \(#line)")
         }
     }
     
