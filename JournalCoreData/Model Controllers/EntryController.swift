@@ -108,7 +108,7 @@ class EntryController {
             }
 
             do {
-                let startTime = CFAbsoluteTimeGetCurrent()
+//                let startTime = CFAbsoluteTimeGetCurrent()
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
 //                print("Finish : \(CFAbsoluteTimeGetCurrent() - startTime)")
                 completion(entryReps, nil)
