@@ -11,6 +11,26 @@ import CoreData
 
 class EntriesTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
     
+    // MARK: - Properties
+    
+    let entryController = EntryController()
+    
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+        
+        let moc = CoreDataStack.shared.mainContext
+        let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
+        
+        frc.delegate = self
+        
+        try! frc.performFetch()
+        
+        return frc
+    }()
+    
+    // MARK: - Lifecycle Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -42,6 +62,10 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
                 self.refreshControl?.endRefreshing()
             }
         }
+    }
+    
+    @IBAction func reload(_ sender: Any) {
+        tableView.reloadData()
     }
     
     // MARK: - Table view data source
@@ -145,23 +169,4 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             break
         }
     }
-    
-    // MARK: - Properties
-    
-    let entryController = EntryController()
-    
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
-        
-        let moc = CoreDataStack.shared.mainContext
-        let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
-        
-        frc.delegate = self
-        
-        try! frc.performFetch()
-        
-        return frc
-    }()
-    
 }
