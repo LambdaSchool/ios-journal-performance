@@ -17,9 +17,12 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            let fetchStart = Date()
+            print("Fetch started: \(fetchStart)")
+            
+            #warning("change this so it doesn't fetch single entries one by one")
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
-                
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
@@ -27,6 +30,12 @@ class CoreDataImporter {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            
+            let fetchEnd = Date()
+            print("Fetch ended:   \(fetchEnd)")
+            let fetchTime = fetchEnd.timeIntervalSinceReferenceDate - fetchStart.timeIntervalSinceReferenceDate
+            print("Fetch time: \(fetchTime) seconds")
+            
             completion(nil)
         }
     }
