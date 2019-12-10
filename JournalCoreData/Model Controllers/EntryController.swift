@@ -12,7 +12,6 @@ import CoreData
 
 
 class EntryController {
-    
     // MARK: - Properties
     
     private let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
@@ -24,7 +23,6 @@ class EntryController {
     // MARK: - Public API
         
     func createEntry(with title: String, bodyText: String, mood: String) {
-        
         let entry = Entry(title: title, bodyText: bodyText, mood: mood)
         
         put(entry: entry)
@@ -33,7 +31,6 @@ class EntryController {
     }
     
     func update(entry: Entry, title: String, bodyText: String, mood: String) {
-        
         entry.title = title
         entry.bodyText = bodyText
         entry.timestamp = Date()
@@ -45,15 +42,20 @@ class EntryController {
     }
     
     func delete(entry: Entry) {
-        
         CoreDataStack.shared.mainContext.delete(entry)
         deleteEntryFromServer(entry: entry)
         saveToPersistentStore()
     }
     
-    func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
+    func refreshEntriesFromServer(
+        completion: @escaping ((Error?) -> Void) = { _ in })
+    {
+        
         fetchEntriesFromServer { (representations, error) in
-            if error != nil { return }
+            if error != nil {
+                completion(error)
+                return
+            }
             guard let representations = representations else { return }
             let moc = CoreDataStack.shared.container.newBackgroundContext()
             #warning("futz with updateEntries, make sure it's efficient")
@@ -63,7 +65,10 @@ class EntryController {
     
     // MARK: - Private Sync Methods
     
-    private func put(entry: Entry, completion: @escaping ((Error?) -> Void) = { _ in }) {
+    private func put(
+        entry: Entry,
+        completion: @escaping ((Error?) -> Void) = { _ in })
+    {
         
         let identifier = entry.identifier ?? UUID().uuidString
         let requestURL = baseURL.appendingPathComponent(identifier).appendingPathExtension("json")
@@ -97,7 +102,9 @@ class EntryController {
             return
         }
         
-        let requestURL = baseURL.appendingPathComponent(identifier).appendingPathExtension("json")
+        let requestURL = baseURL
+            .appendingPathComponent(identifier)
+            .appendingPathExtension("json")
         var request = URLRequest(url: requestURL)
         request.httpMethod = "DELETE"
         
@@ -112,12 +119,13 @@ class EntryController {
         }.resume()
     }
     
-    private func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
-        
+    private func fetchEntriesFromServer(
+        completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in })
+    {
         let requestURL = baseURL.appendingPathExtension("json")
         
+        #warning("is there a way we can fetch only the entries we need?")
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
-            
             if let error = error {
                 NSLog("Error fetching entries from server: \(error)")
                 completion(nil, error)
@@ -131,6 +139,7 @@ class EntryController {
             }
 
             do {
+                let start = Date()
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 
                 completion(entryReps, nil)
@@ -144,10 +153,11 @@ class EntryController {
     
     // MARK: - Private CoreData Methods
     
-    private func updateEntries(with representations: [EntryRepresentation],
-                               in context: NSManagedObjectContext,
-                               completion: @escaping ((Error?) -> Void) = { _ in }) {
-        
+    private func updateEntries(
+        with representations: [EntryRepresentation],
+        in context: NSManagedObjectContext,
+        completion: @escaping ((Error?) -> Void) = { _ in })
+    {
         importer = CoreDataImporter(context: context)
         importer?.sync(entries: representations) { (error) in
             if let error = error {
@@ -169,7 +179,7 @@ class EntryController {
         }
     }
     
-    func saveToPersistentStore() {        
+    private func saveToPersistentStore() {
         do {
             try CoreDataStack.shared.mainContext.save()
         } catch {

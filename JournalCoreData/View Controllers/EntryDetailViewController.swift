@@ -9,35 +9,25 @@
 import UIKit
 
 class EntryDetailViewController: UIViewController {
+    // MARK: - Properties
+    
+    var entry: Entry? {
+        didSet {
+            updateViews()
+        }
+    }
+    
+    var entryController: EntryController?
+    
+    @IBOutlet weak var moodSegmentedControl: UISegmentedControl!
+    @IBOutlet weak var titleTextField: UITextField!
+    @IBOutlet weak var bodyTextView: UITextView!
+    
+    // MARK: - View Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         updateViews()
-    }
-    
-    @IBAction func saveEntry(_ sender: Any) {
-        
-        guard let title = titleTextField.text,
-            let bodyText = bodyTextView.text else { return }
-        
-        var mood: String!
-        
-        switch moodSegmentedControl.selectedSegmentIndex {
-        case 0:
-            mood = Mood.bad.rawValue
-        case 1:
-            mood = Mood.neutral.rawValue
-        case 2:
-            mood = Mood.good.rawValue
-        default:
-            break
-        }
-        
-        if let entry = entry {
-            entryController?.update(entry: entry, title: title, bodyText: bodyText, mood: mood)
-        } else {
-            entryController?.createEntry(with: title, bodyText: bodyText, mood: mood)
-        }
-        self.navigationController?.popViewController(animated: true)
     }
     
     private func updateViews() {
@@ -66,17 +56,33 @@ class EntryDetailViewController: UIViewController {
         
         moodSegmentedControl.selectedSegmentIndex = segmentIndex
     }
-    
-    var entry: Entry? {
-        didSet {
-            updateViews()
-        }
-    }
-    
-    var entryController: EntryController?
-    
-    @IBOutlet weak var moodSegmentedControl: UISegmentedControl!
-    @IBOutlet weak var titleTextField: UITextField!
-    @IBOutlet weak var bodyTextView: UITextView!
 
+    
+    // MARK: - Actions
+    
+    @IBAction func saveEntry(_ sender: Any) {
+        
+        guard let title = titleTextField.text,
+            let bodyText = bodyTextView.text else { return }
+        
+        var mood: String!
+        
+        switch moodSegmentedControl.selectedSegmentIndex {
+        case 0:
+            mood = Mood.bad.rawValue
+        case 1:
+            mood = Mood.neutral.rawValue
+        case 2:
+            mood = Mood.good.rawValue
+        default:
+            break
+        }
+        
+        if let entry = entry {
+            entryController?.update(entry: entry, title: title, bodyText: bodyText, mood: mood)
+        } else {
+            entryController?.createEntry(with: title, bodyText: bodyText, mood: mood)
+        }
+        self.navigationController?.popViewController(animated: true)
+    }
 }

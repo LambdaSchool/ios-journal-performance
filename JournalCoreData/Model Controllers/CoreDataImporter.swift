@@ -10,6 +10,8 @@ import Foundation
 import CoreData
 
 class CoreDataImporter {
+    let context: NSManagedObjectContext
+    
     init(context: NSManagedObjectContext) {
         self.context = context
     }
@@ -63,6 +65,4 @@ class CoreDataImporter {
         }
         return result
     }
-    
-    let context: NSManagedObjectContext
 }
