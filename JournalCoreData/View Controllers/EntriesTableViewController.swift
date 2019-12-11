@@ -15,6 +15,14 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     let entryController = EntryController()
     
+    private var entryRepsFromServer = Cache<String, EntryRepresentation>()
+    private var coreDataEntries = Cache<String, Entry>()
+    
+    private var coreDataOps = [Operation]()
+    private var serverOps = [Operation]()
+    private var coreDataQueue = OperationQueue()
+    private var serverQueue = OperationQueue()
+    
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
@@ -51,17 +59,103 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
-        entryController.refreshEntriesFromServer { error in
+        syncWithServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
-            
+            self.entryController.saveToPersistentStore()
             DispatchQueue.main.async {
+                try! self.fetchedResultsController.performFetch()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
         }
+    }
+    
+    func syncWithServer(completion: @escaping (Error?) -> Void = { _ in }) {
+        let context = CoreDataStack.shared.container.newBackgroundContext()
+        
+        for op in serverOps {
+            op.cancel()
+        }
+        for op in coreDataOps {
+            op.cancel()
+        }
+        
+        let fetchFromCoreDataOp = BlockOperation {
+            guard let entries = self.entryController
+                .fetchAllEntriesFromPersistentStore(in: context)
+                else { return }
+            for entry in entries {
+                guard let id = entry.identifier else { continue }
+                self.coreDataEntries[id] = entry
+            }
+        }
+        coreDataOps.append(fetchFromCoreDataOp)
+        
+        let fetchFromServerOp = BlockOperation {
+            self.entryController.fetchEntriesFromServer { (reps, error) in
+                if let error = error {
+                    completion(error)
+                    return
+                }
+                
+                let completionOp = BlockOperation {
+                    var caughtError: Error? = nil
+                    
+                    context.performAndWait {
+                        do {
+                            try context.save()
+                        } catch {
+                            caughtError = error
+                        }
+                    }
+                    completion(caughtError)
+                }
+                
+                guard let serverReps = reps else { return }
+                for serverRep in serverReps {
+                    guard let id = serverRep.identifier else { continue }
+                    self.entryRepsFromServer[id] = serverRep
+                    
+                    let cdUpdateOp = BlockOperation {
+                        context.performAndWait {
+                            if let coreDataEntry = self.coreDataEntries[id] {
+                                coreDataEntry.update(with: serverRep)
+                            } else {
+                                self.coreDataEntries[id] = Entry(
+                                    entryRepresentation: serverRep,
+                                    context: context)
+                            }
+                        }
+                    }
+                    cdUpdateOp.addDependency(fetchFromCoreDataOp)
+                    completionOp.addDependency(cdUpdateOp)
+                    
+                    self.coreDataOps.append(cdUpdateOp)
+                    self.coreDataQueue.addOperation(cdUpdateOp)
+                }
+                
+                let sendNewOpsToServer = BlockOperation {
+                    for (id, entry) in self.coreDataEntries {
+                        if self.entryRepsFromServer[id] == nil {
+                            self.entryController.put(entry: entry)
+                        }
+                    }
+                }
+                sendNewOpsToServer.addDependency(fetchFromCoreDataOp)
+                
+                self.serverOps.append(sendNewOpsToServer)
+                self.serverQueue.addOperation(sendNewOpsToServer)
+                
+                self.coreDataQueue.addOperation(completionOp)
+            }
+        }
+        serverOps.append(fetchFromServerOp)
+        
+        serverQueue.addOperation(fetchFromServerOp)
+        coreDataQueue.addOperation(fetchFromCoreDataOp)
     }
     
     // MARK: - Table view data source
@@ -106,10 +200,12 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         tableView.endUpdates()
     }
     
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
-                    didChange sectionInfo: NSFetchedResultsSectionInfo,
-                    atSectionIndex sectionIndex: Int,
-                    for type: NSFetchedResultsChangeType) {
+    func controller(
+        _ controller: NSFetchedResultsController<NSFetchRequestResult>,
+        didChange sectionInfo: NSFetchedResultsSectionInfo,
+        atSectionIndex sectionIndex: Int,
+        for type: NSFetchedResultsChangeType)
+    {
         switch type {
         case .insert:
             tableView.insertSections(IndexSet(integer: sectionIndex), with: .automatic)
@@ -120,11 +216,13 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         }
     }
     
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
-                    didChange anObject: Any,
-                    at indexPath: IndexPath?,
-                    for type: NSFetchedResultsChangeType,
-                    newIndexPath: IndexPath?) {
+    func controller(
+        _ controller: NSFetchedResultsController<NSFetchRequestResult>,
+        didChange anObject: Any,
+        at indexPath: IndexPath?,
+        for type: NSFetchedResultsChangeType,
+        newIndexPath: IndexPath?)
+    {
         switch type {
         case .insert:
             guard let newIndexPath = newIndexPath else { return }
@@ -149,20 +247,20 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        
         switch segue.identifier {
         case "CreateEntry":
-            guard let destinationVC = segue.destination as? EntryDetailViewController else { return }
+            guard let destinationVC = segue.destination
+                as? EntryDetailViewController
+                else { return }
             
             destinationVC.entryController = entryController
-            
         case "ViewEntry":
             guard let destinationVC = segue.destination as? EntryDetailViewController,
-                let indexPath = tableView.indexPathForSelectedRow else { return }
+                let indexPath = tableView.indexPathForSelectedRow
+                else { return }
             
             destinationVC.entry = fetchedResultsController.object(at: indexPath)
             destinationVC.entryController = entryController
-            
         default:
             break
         }

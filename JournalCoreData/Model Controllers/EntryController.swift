@@ -14,11 +14,9 @@ import CoreData
 class EntryController {
     // MARK: - Properties
     
+    typealias Completion = ((Error?) -> Void)
+    
     private let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
-    
-    private var importer: CoreDataImporter?
-    
-    private(set) var entries = Cache<String, Entry>()
     
     // MARK: - Public API
         
@@ -47,25 +45,9 @@ class EntryController {
         saveToPersistentStore()
     }
     
-    func refreshEntriesFromServer(
-        completion: @escaping ((Error?) -> Void) = { _ in })
-    {
-        
-        fetchEntriesFromServer { (representations, error) in
-            if error != nil {
-                completion(error)
-                return
-            }
-            guard let representations = representations else { return }
-            let moc = CoreDataStack.shared.container.newBackgroundContext()
-            #warning("futz with updateEntries, make sure it's efficient")
-            self.updateEntries(with: representations, in: moc, completion: completion)
-        }
-    }
-    
     // MARK: - Private Sync Methods
     
-    private func put(
+    func put(
         entry: Entry,
         completion: @escaping ((Error?) -> Void) = { _ in })
     {
@@ -119,12 +101,10 @@ class EntryController {
         }.resume()
     }
     
-    private func fetchEntriesFromServer(
+    func fetchEntriesFromServer(
         completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in })
     {
         let requestURL = baseURL.appendingPathExtension("json")
-        
-        #warning("is there a way we can fetch only the entries we need?")
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
             if let error = error {
                 NSLog("Error fetching entries from server: \(error)")
@@ -139,7 +119,6 @@ class EntryController {
             }
 
             do {
-                let start = Date()
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 
                 completion(entryReps, nil)
@@ -153,33 +132,23 @@ class EntryController {
     
     // MARK: - Private CoreData Methods
     
-    private func updateEntries(
-        with representations: [EntryRepresentation],
+    func fetchAllEntriesFromPersistentStore(
         in context: NSManagedObjectContext,
-        completion: @escaping ((Error?) -> Void) = { _ in })
-    {
-        importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
-            if let error = error {
-                NSLog("Error syncing entries from server: \(error)")
+        completion: (Error?) -> Void = { _ in }
+    ) -> [Entry]? {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        var entries: [Entry]? = nil
+        context.performAndWait {
+            do {
+                entries = try context.fetch(fetchRequest)
+            } catch {
                 completion(error)
-                return
-            }
-            
-            context.perform {
-                do {
-                    try context.save()
-                    completion(nil)
-                } catch {
-                    NSLog("Error saving sync context: \(error)")
-                    completion(error)
-                    return
-                }
             }
         }
+        return entries
     }
     
-    private func saveToPersistentStore() {
+    func saveToPersistentStore() {
         do {
             try CoreDataStack.shared.mainContext.save()
         } catch {
