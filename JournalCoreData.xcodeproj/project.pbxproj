@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1CD97E9923A069D500AFAD08 /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CD97E9823A069D500AFAD08 /* Operation.swift */; };
 		462A2D592122C6DF00E7FF73 /* Mood.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462A2D582122C6DF00E7FF73 /* Mood.swift */; };
 		4697668A2123E0FA00E7FF73 /* EntryRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469766892123E0FA00E7FF73 /* EntryRepresentation.swift */; };
 		4697668C2123E1A400E7FF73 /* Entry+Codable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4697668B2123E1A400E7FF73 /* Entry+Codable.swift */; };
@@ -26,6 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1CD97E9823A069D500AFAD08 /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		462A2D582122C6DF00E7FF73 /* Mood.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mood.swift; sourceTree = "<group>"; };
 		469766892123E0FA00E7FF73 /* EntryRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryRepresentation.swift; sourceTree = "<group>"; };
 		4697668B2123E1A400E7FF73 /* Entry+Codable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Entry+Codable.swift"; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 			children = (
 				46AA32EA21213150003AC495 /* EntriesTableViewController.swift */,
 				46AA32EC2121315F003AC495 /* EntryDetailViewController.swift */,
+				1CD97E9823A069D500AFAD08 /* Operation.swift */,
 			);
 			path = "View Controllers";
 			sourceTree = "<group>";
@@ -226,6 +229,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				462A2D592122C6DF00E7FF73 /* Mood.swift in Sources */,
+				1CD97E9923A069D500AFAD08 /* Operation.swift in Sources */,
 				4697668C2123E1A400E7FF73 /* Entry+Codable.swift in Sources */,
 				46AA32EF21213184003AC495 /* EntryTableViewCell.swift in Sources */,
 				46AA32EB21213150003AC495 /* EntriesTableViewController.swift in Sources */,
