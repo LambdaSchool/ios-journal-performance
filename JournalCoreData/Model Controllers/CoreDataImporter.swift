@@ -17,6 +17,8 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            let startTime = Date()
+            print("Starting Sync")
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
@@ -27,6 +29,9 @@ class CoreDataImporter {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            let endTime = Date()
+            let totalTime = endTime.timeIntervalSince1970 - startTime.timeIntervalSince1970
+            print("Syncing completed in \(totalTime) seconds ")
             completion(nil)
         }
     }
