@@ -27,5 +27,4 @@ extension Entry: Encodable {
         case timestamp
         case identifier
     }
-    
 }
