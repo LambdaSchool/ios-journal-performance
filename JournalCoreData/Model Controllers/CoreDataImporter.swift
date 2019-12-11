@@ -16,18 +16,36 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
+        let entriesWithId = entries.filter { $0.identifier != nil }
+        let identifiersToFetch = entriesWithId.compactMap { $0.identifier! }
+        
+        let representationByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entriesWithId))
+        
+        var entriesToCreate = representationByID
+        
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
+        
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
+            do {
+                let existingEntries = try self.context.fetch(fetchRequest)
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                for entry in existingEntries {
+                    guard let id = entry.identifier,
+                        let representation = representationByID[id] else { continue }
+                    
+                    self.update(entry: entry, with: representation)
+                    entriesToCreate.removeValue(forKey: id)
                 }
+                
+                for representation in entriesToCreate.values {
+                    _ = Entry(entryRepresentation: representation, context: self.context)
+                }
+                print("Finished Sync")
+                completion(nil)
+            } catch {
+                print("Error fetching entries for UUIDs: \(error)")
             }
-            completion(nil)
         }
     }
     
@@ -42,10 +60,8 @@ class CoreDataImporter {
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
         
         guard let identifier = identifier else { return nil }
-        
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
-        
         var result: Entry? = nil
         do {
             result = try context.fetch(fetchRequest).first
