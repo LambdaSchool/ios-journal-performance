@@ -133,6 +133,7 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
+        print("Starting sync")
         importer?.sync(entries: representations) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
@@ -140,7 +141,7 @@ class EntryController {
                 return
             }
             
-            context.perform {
+            context.performAndWait {
                 do {
                     try context.save()
                     completion(nil)
