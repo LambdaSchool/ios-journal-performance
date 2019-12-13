@@ -10,11 +10,15 @@ import UIKit
 
 class EntryTableViewCell: UITableViewCell {
 
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var timestampLabel: UILabel!
+    @IBOutlet weak var bodyTextLabel: UILabel!
+
     private func updateViews() {
         guard let entry = entry else { return }
         
         titleLabel.text = entry.title
-        bodyTextLabel.text = entry.bodyText
+//        bodyTextLabel.text = entry.bodyText
         timestampLabel.text = TimestampFormatter.formatTimestamp(for: entry)
     }
     
@@ -23,8 +27,4 @@ class EntryTableViewCell: UITableViewCell {
             updateViews()
         }
     }
-    
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var timestampLabel: UILabel!
-    @IBOutlet weak var bodyTextLabel: UILabel!
 }

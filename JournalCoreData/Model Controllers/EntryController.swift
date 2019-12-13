@@ -95,7 +95,6 @@ class EntryController {
         let requestURL = baseURL.appendingPathExtension("json")
         
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
-            
             if let error = error {
                 NSLog("Error fetching entries from server: \(error)")
                 completion(nil, error)
@@ -109,7 +108,9 @@ class EntryController {
             }
 
             do {
+//                let startTime = CFAbsoluteTimeGetCurrent()
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
+//                print("Finish : \(CFAbsoluteTimeGetCurrent() - startTime)")
                 completion(entryReps, nil)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
