@@ -16,43 +16,40 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
-        print("Sync started")
+        NSLog("Sync started")
+        
+        let identifiersToFetch = entries.compactMap { $0.identifier }
+        let repsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entries))
+        var entriesToCreate = repsByID
+        
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
+        let context = CoreDataStack.shared.container.newBackgroundContext()
         
         self.context.perform {
-            
-            let identifiersToFetch = entries.compactMap { $0.identifier }
-            let repsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entries))
-            var entriesToCreate = repsByID
-            
-            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
-            let context = CoreDataStack.shared.container.newBackgroundContext()
-            
-            context.performAndWait {
-                do {
-                    let existingEntries = try context.fetch(fetchRequest)
+            do {
+                let existingEntries = try context.fetch(fetchRequest)
+                
+                for entry in existingEntries {
+                    guard let identifier = entry.identifier,
+                        let representation = repsByID[identifier] else { continue }
                     
-                    for entry in existingEntries {
-                        guard let identifier = entry.identifier,
-                            let representation = repsByID[identifier] else { continue }
-                        
-                        self.update(entry: entry, with: representation)
-                        
-                        entriesToCreate.removeValue(forKey: identifier)
-                    }
+                    self.update(entry: entry, with: representation)
                     
-                    for representation in entriesToCreate.values {
-                        let _ = Entry(entryRepresentation: representation, context: context)
-                    }
-                    
-                    try context.save()
-                } catch {
-                    return
+                    entriesToCreate.removeValue(forKey: identifier)
                 }
+                
+                for representation in entriesToCreate.values {
+                    let _ = Entry(entryRepresentation: representation, context: context)
+                }
+                
+                completion(nil)
+                NSLog("Sync finished")
+            } catch {
+                return
             }
-            completion(nil)
-            print("Sync finished")
         }
+        try? context.save()
     }
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
