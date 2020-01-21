@@ -16,19 +16,40 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
+        NSLog("Sync started")
+        
+        let identifiersToFetch = entries.compactMap { $0.identifier }
+        let repsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entries))
+        var entriesToCreate = repsByID
+        
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
+        let context = CoreDataStack.shared.container.newBackgroundContext()
+        
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
+            do {
+                let existingEntries = try context.fetch(fetchRequest)
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                for entry in existingEntries {
+                    guard let identifier = entry.identifier,
+                        let representation = repsByID[identifier] else { continue }
+                    
+                    self.update(entry: entry, with: representation)
+                    
+                    entriesToCreate.removeValue(forKey: identifier)
                 }
+                
+                for representation in entriesToCreate.values {
+                    let _ = Entry(entryRepresentation: representation, context: context)
+                }
+                
+                completion(nil)
+                NSLog("Sync finished")
+            } catch {
+                return
             }
-            completion(nil)
         }
+        try? context.save()
     }
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
