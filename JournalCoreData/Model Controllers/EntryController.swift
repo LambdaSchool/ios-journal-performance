@@ -93,8 +93,10 @@ class EntryController {
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
+        var request = URLRequest(url: requestURL)
+        request.httpMethod = "GET"
         
-        URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
+        URLSession.shared.dataTask(with: request) { (data, _, error) in
             
             if let error = error {
                 NSLog("Error fetching entries from server: \(error)")
@@ -135,17 +137,16 @@ class EntryController {
         importer = CoreDataImporter(context: context)
         importer?.sync(entries: representations) { (error) in
             if let error = error {
-                NSLog("Error syncing entries from server: \(error)")
+                print("Error syncing entries: \(error)")
                 completion(error)
                 return
             }
-            
             context.perform {
                 do {
                     try context.save()
                     completion(nil)
                 } catch {
-                    NSLog("Error saving sync context: \(error)")
+                    print("Error saving to core data: \(error)")
                     completion(error)
                     return
                 }
