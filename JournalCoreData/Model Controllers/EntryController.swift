@@ -135,24 +135,29 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
-            if let error = error {
-                NSLog("Error syncing entries from server: \(error)")
-                completion(error)
-                return
-            }
-            
-            context.perform {
-                do {
-                    try context.save()
-                    completion(nil)
-                } catch {
-                    NSLog("Error saving sync context: \(error)")
-                    completion(error)
-                    return
-                }
-            }
+        do {
+            try importer?.sync(entries: representations)
+        } catch {
+            print("Error syncing entries")
         }
+//        { (error) in
+//            if let error = error {
+//                NSLog("Error syncing entries from server: \(error)")
+//                completion(error)
+//                return
+//            }
+//
+//            context.perform {
+//                do {
+//                    try context.save()
+//                    completion(nil)
+//                } catch {
+//                    NSLog("Error saving sync context: \(error)")
+//                    completion(error)
+//                    return
+//                }
+//            }
+//        }
     }
     
     func saveToPersistentStore() {        
