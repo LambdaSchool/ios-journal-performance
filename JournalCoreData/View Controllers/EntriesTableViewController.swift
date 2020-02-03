@@ -38,8 +38,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
-                self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                self.tableView.reloadData()
+                print("end refresh")
             }
         }
     }

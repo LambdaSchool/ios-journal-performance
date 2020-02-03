@@ -39,6 +39,9 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
+    
+    // TODO: It seems like it is doing a separate network call for each entry.  Crazy.
+    
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
         
         guard let identifier = identifier else { return nil }
