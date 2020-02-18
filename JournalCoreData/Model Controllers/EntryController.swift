@@ -107,7 +107,7 @@ class EntryController {
                 completion(nil, NSError())
                 return
             }
-
+            
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)

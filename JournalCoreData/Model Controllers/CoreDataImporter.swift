@@ -47,8 +47,10 @@ class CoreDataImporter {
         fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
         
         var result: Entry? = nil
+        
         do {
             result = try context.fetch(fetchRequest).first
+            
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
