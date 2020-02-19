@@ -31,6 +31,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+        
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
@@ -38,6 +39,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+//                self.fetchedResultsController = nil
+//                CoreDataStack.shared.mainContext.reset()
+//                self.fetchedResultsController = self.createFRC()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
@@ -150,18 +154,19 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     let entryController = EntryController()
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    func createFRC() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
-        
+            
         let moc = CoreDataStack.shared.mainContext
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
-        
+            
         frc.delegate = self
-        
+            
         try! frc.performFetch()
-        
+            
         return frc
-    }()
+    }
     
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry>! = self.createFRC()
 }

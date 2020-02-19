@@ -131,7 +131,6 @@ class EntryController {
     private func updateEntries(with representations: [EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
-        
         importer = CoreDataImporter(context: context)
         importer?.sync(entries: representations) { (error) in
             if let error = error {
