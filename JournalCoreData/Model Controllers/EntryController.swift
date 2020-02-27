@@ -9,6 +9,7 @@
 import Foundation
 import CoreData
 
+// test comment
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
