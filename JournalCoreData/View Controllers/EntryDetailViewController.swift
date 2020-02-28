@@ -37,6 +37,11 @@ class EntryDetailViewController: UIViewController {
         } else {
             entryController?.createEntry(with: title, bodyText: bodyText, mood: mood)
         }
+        
+        // NEW
+        // Ringing the bell
+        NotificationCenter.default.post(name: .entryAddedUpdated, object: self)
+        
         self.navigationController?.popViewController(animated: true)
     }
     
@@ -78,5 +83,30 @@ class EntryDetailViewController: UIViewController {
     @IBOutlet weak var moodSegmentedControl: UISegmentedControl!
     @IBOutlet weak var titleTextField: UITextField!
     @IBOutlet weak var bodyTextView: UITextView!
-
+    
+//    // MARK: - State Restoration
+//      // Doesn't work because I can't change Entry: Encodable to Entry: Codable (this was a bad proj to try to use state restoration in)
+//    override func encodeRestorableState(with coder: NSCoder) {
+//        super.encodeRestorableState(with: coder)
+//
+//        // Entry -> Data -> Encode
+//        guard let entry = entry else {return}
+//        let entryData = try? PropertyListEncoder().encode(entry)
+//        coder.encode(entryData, forKey: "entryData")
+//    }
+//
+//    override func decodeRestorableState(with coder: NSCoder) {
+//        super.decodeRestorableState(with: coder)
+//
+//        // Data -> Entry -> set entry variable
+//        guard let entryData = coder.decodeObject(forKey: "entryData") as? Data else {return}
+//
+//        entry = try? PropertyListDecoder().decode(Entry.self, from: entryData)
+//
+//    }
+}
+// NEW
+extension NSNotification.Name {
+    
+    static let entryAddedUpdated = NSNotification.Name("entryAdded/Updated")
 }

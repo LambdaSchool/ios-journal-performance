@@ -18,7 +18,16 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
         
+        // NEW
+        NotificationCenter.default.addObserver(self, selector: #selector(noteReceived), name: .entryAddedUpdated, object: nil)
+        
         refresh(nil)
+    }
+    
+    // NEW
+    @objc func noteReceived() {
+        print("RECEIVED NOTIFICATION")
+        title = "HEARD THE BELL"
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -38,8 +47,10 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                print("sync START")
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                print("sync DONE")
             }
         }
     }
