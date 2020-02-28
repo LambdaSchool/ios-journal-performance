@@ -10,6 +10,10 @@ import Foundation
 import CoreData
 
 class CoreDataImporter {
+    
+    // NEW
+    var identifierArray: [String] = []
+    
     init(context: NSManagedObjectContext) {
         self.context = context
     }
@@ -19,6 +23,9 @@ class CoreDataImporter {
         self.context.perform {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
+                
+                // NEW
+                self.identifierArray.append(identifier)
                 
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
                 if let entry = entry, entry != entryRep {
@@ -41,10 +48,16 @@ class CoreDataImporter {
     
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
         
-        guard let identifier = identifier else { return nil }
+        // OLD
+        //guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        
+        // OLD
+        //fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        
+        // NEW
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifierArray)
         
         var result: Entry? = nil
         
