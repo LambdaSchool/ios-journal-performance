@@ -17,7 +17,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
-        
+       
         refresh(nil)
     }
     

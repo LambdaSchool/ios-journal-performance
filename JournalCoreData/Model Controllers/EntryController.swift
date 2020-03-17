@@ -139,7 +139,7 @@ class EntryController {
                 completion(error)
                 return
             }
-            
+            ˆ
             context.perform {
                 do {
                     try context.save()
