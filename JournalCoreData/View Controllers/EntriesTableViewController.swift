@@ -31,6 +31,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+        
+        
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")

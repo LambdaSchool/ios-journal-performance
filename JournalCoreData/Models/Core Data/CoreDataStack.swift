@@ -21,8 +21,22 @@ class CoreDataStack {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        // Do I need line 24?
         return container
     }()
+    
+    func save(context: NSManagedObjectContext = CoreDataStack.shared.mainContext) throws {
+        var error: Error?
+        context.performAndWait {
+            do{
+                try context.save()
+            } catch let saveError {
+                error = saveError
+            }
+        }
+        if let error = error { throw error }
+    }
     
     var mainContext: NSManagedObjectContext { return container.viewContext }
 }
