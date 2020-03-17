@@ -15,18 +15,29 @@ class CoreDataImporter {
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+        let startTime = Date()
+        print("Start: \(startTime)")
+        let fetchQueue = DispatchQueue.global(qos: .background)
         
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+            
+            fetchQueue.async {
+                for entryRep in entries {
+                    guard let identifier = entryRep.identifier else { continue }
+                    
+                    let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                    if let entry = entry, entry != entryRep {
+                        self.update(entry: entry, with: entryRep)
+                    } else if entry == nil {
+                        _ = Entry(entryRepresentation: entryRep, context: self.context)
+                    }
+                    
                 }
             }
+            
+            let endTime = Date()
+            let duration = endTime.timeIntervalSince(startTime)
+            print(duration)
             completion(nil)
         }
     }
