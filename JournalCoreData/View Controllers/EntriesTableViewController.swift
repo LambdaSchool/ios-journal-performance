@@ -23,7 +23,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+   
         tableView.reloadData()
     }
     
@@ -39,6 +39,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             
             DispatchQueue.main.async {
                 self.tableView.reloadData()
+                self.fetchedResultsController.managedObjectContext.reset()
                 self.refreshControl?.endRefreshing()
             }
         }
