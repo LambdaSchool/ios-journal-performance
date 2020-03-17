@@ -38,6 +38,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                CoreDataStack.shared.mainContext.reset()
+                self.fetchedResultsController = self.newFRC()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
@@ -150,7 +152,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     let entryController = EntryController()
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = newFRC()
+
+    func newFRC() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
@@ -162,6 +166,5 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         try! frc.performFetch()
         
         return frc
-    }()
-    
+    }
 }
