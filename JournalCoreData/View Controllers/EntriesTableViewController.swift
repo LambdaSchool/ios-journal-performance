@@ -38,8 +38,16 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
-                self.tableView.reloadData()
-                self.refreshControl?.endRefreshing()
+                CoreDataStack.shared.mainContext.reset()
+                do {
+                    try self.fetchedResultsController.performFetch()
+                    self.tableView.reloadData()
+                    self.refreshControl?.endRefreshing()
+                } catch {
+                    NSLog("fetchedResultsController.performFetch() error: \(error)")
+                }
+                
+                
             }
         }
     }
