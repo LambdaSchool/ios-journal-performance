@@ -15,11 +15,23 @@ class CoreDataImporter {
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
-        
+        print("began syncing")
+        let start = CFAbsoluteTimeGetCurrent()
         self.context.perform {
+            
+            let idsToFetch = entries.compactMap { $0.identifier }
+            self.fetchEntriesByIDs(ids: idsToFetch, in: self.context)
+//            let entriesToUpdate = self.fetchEntrysFromPersistentStore(with: idsToFetch, in: self.context)
+            
+//            if let entriesToUpdate = entriesToUpdate {
+//                for entry in entriesToUpdate {
+//                    self.update(entry: entry, with: entryRep)
+//                }
+//            }
+            
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
-                
+
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
@@ -28,7 +40,11 @@ class CoreDataImporter {
                 }
             }
             completion(nil)
+            print("completed syncing")
+            let end = CFAbsoluteTimeGetCurrent()
+            print("took: \(end - start) seconds to sync")
         }
+        
     }
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
@@ -39,21 +55,31 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
+    private func fetchEntriesByIDs(ids: [String], in context: NSManagedObjectContext) {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", ids)
         
-        var result: Entry? = nil
+        var results: [Entry] = []
         do {
-            result = try context.fetch(fetchRequest).first
+            results = try context.fetch(fetchRequest)
+            for result in results {
+                entries[result.identifier!] = result
+            }
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
+    
+    }
+    
+    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+        
+        guard let identifier = identifier else { return nil }
+    
+        var result: Entry? = nil
+        result = entries[identifier]
         return result
     }
     
     let context: NSManagedObjectContext
+    var entries: [String: Entry] = [:]
 }
