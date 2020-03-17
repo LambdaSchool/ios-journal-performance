@@ -21,8 +21,24 @@ class CoreDataStack {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
+        
+     //MARK:- Code from WWDC /-
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        container.viewContext.undoManager = nil
+        container.viewContext.shouldDeleteInaccessibleFaults = true
+        
         return container
     }()
     
-    var mainContext: NSManagedObjectContext { return container.viewContext }
+    var mainContext: NSManagedObjectContext {
+        return container.viewContext
+        
+    }
+    
+     var backgroundContext: NSManagedObjectContext {
+        return container.newBackgroundContext()
+}
+    
 }

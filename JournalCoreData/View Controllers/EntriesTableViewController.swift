@@ -17,13 +17,28 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
-       
+        
         refresh(nil)
     }
+    var progressView : UIProgressView = {
+        let view = UIProgressView(progressViewStyle: UIProgressViewStyle.default)
+        view.sizeToFit()
+        return view
+    }()
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        setUpToolBar()
         
+        //MARK:- Thoughts: Add KVO to track progress of fetch result:-
+        
+        
+    }
+    
+    private func setUpToolBar() {
+        navigationController?.isToolbarHidden = false
+        let toolBarItem = UIBarButtonItem(customView: progressView)
+        toolbarItems = [toolBarItem]
         tableView.reloadData()
     }
     
@@ -38,8 +53,10 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                CoreDataStack.shared.mainContext.reset()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+              
             }
         }
     }
@@ -150,7 +167,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     let entryController = EntryController()
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    @objc lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
