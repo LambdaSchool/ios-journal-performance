@@ -10,7 +10,7 @@ import Foundation
 import CoreData
 
 extension Entry {
-    
+    @discardableResult
     convenience init(title: String,
                      bodyText: String,
                      timestamp: Date = Date(),
@@ -26,7 +26,7 @@ extension Entry {
         self.timestamp = timestamp
         self.identifier = identifier
     }
-    
+    @discardableResult
     convenience init?(entryRepresentation: EntryRepresentation, context: NSManagedObjectContext = CoreDataStack.shared.mainContext) {
         
         guard let title = entryRepresentation.title,
