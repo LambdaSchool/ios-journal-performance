@@ -10,7 +10,9 @@ import Foundation
 import CoreData
 
 class CoreDataImporter {
-    init(context: NSManagedObjectContext) {
+//    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext = CoreDataStack.shared.backgroundContext) {
+        
         self.context = context
     }
     
@@ -23,9 +25,7 @@ class CoreDataImporter {
         self.context.perform {
             for entryRep in entries {
                 
-                // compact map to fetch entries
-                let idsToFetch = entries.compactMap { $0.identifier }
-                self.fetchEntriesByIDs(ids: idsToFetch, in: self.context)
+ 
                 
                 guard let identifier = entryRep.identifier else { continue }
                 
