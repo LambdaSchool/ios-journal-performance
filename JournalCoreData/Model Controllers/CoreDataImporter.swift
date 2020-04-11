@@ -23,16 +23,38 @@ class CoreDataImporter {
         let beginTime = CFAbsoluteTimeGetCurrent()
 
         self.context.perform {
+            
+            // creat empty array of sting IDs
+             var idFromServer: [String] = []
+            
             for entryRep in entries {
-                
- 
-                
                 guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
+                //append list of id to empty array
+                idFromServer.append(identifier)
+                  }
+            
+            let coreDataEntries = self.fetchAllEntriesFromPersistentStore(with: idFromServer, in: self.context)
+            var coreDataEntryTableLookup: [String: Entry] = [:]
+            
+            if let coreDataEntries = coreDataEntries {
+                for entry in coreDataEntries {
+                    guard let identifier = entry.identifier else { continue }
+                    coreDataEntryTableLookup[identifier] = entry
+                }
+                }
+            
+//                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+//                if let entry = entry, entry != entryRep {
+//                    self.update(entry: entry, with: entryRep)
+//                } else if entry == nil {
+//                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+//                }
+            for entryRep in entries {
+                guard let identifier = entryRep.identifier else { continue }
+                let coreDataEntry = coreDataEntryTableLookup[identifier]
+                if let coreDataEntry = coreDataEntry, coreDataEntry != entryRep {
+                    self.update(entry: coreDataEntry, with: entryRep)
+                } else {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
@@ -51,20 +73,23 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+//    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+private func fetchAllEntriesFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> [Entry]? {
         
-        guard let identifier = identifier else { return nil }
+//        guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
-        var result: Entry? = nil
+//        var result: Entry? = nil
         do {
-            result = try context.fetch(fetchRequest).first
+//            result = try context.fetch(fetchRequest).first
+            let entries = try context.fetch(fetchRequest)
+            return entries
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
-        return result
+        return nil
     }
     
     let context: NSManagedObjectContext
