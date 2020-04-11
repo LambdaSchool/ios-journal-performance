@@ -12,7 +12,7 @@ import CoreData
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
-        
+
     func createEntry(with title: String, bodyText: String, mood: String) {
         
         let entry = Entry(title: title, bodyText: bodyText, mood: mood)
@@ -93,7 +93,8 @@ class EntryController {
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
-        
+        let start = DispatchTime.now()
+        print("Network call Started: \(start)")
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
             
             if let error = error {
@@ -109,13 +110,23 @@ class EntryController {
             }
 
             do {
+                let start = DispatchTime.now()
+                print("Decodind Started: \(start)")
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)
+                let end = DispatchTime.now()
+                let nanoTime = end.uptimeNanoseconds - start.uptimeNanoseconds
+                let timeInterval = Double(nanoTime/1000000000)
+                print("JSON decoding Ended: \(end) Time to decode: \(timeInterval) seconds")
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
                 completion(nil, error)
                 return
             }
+            let end = DispatchTime.now()
+            let nanoTime = end.uptimeNanoseconds - start.uptimeNanoseconds
+            let timeInterval = Double(nanoTime/1000000000)
+            print("Network call Ended: \(end) Time to call: \(timeInterval) seconds")
         }.resume()
     }
     
