@@ -16,8 +16,17 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
+        // check syncing time manually
+        print("begin Syncing")
+        let beginTime = CFAbsoluteTimeGetCurrent()
+
         self.context.perform {
             for entryRep in entries {
+                
+                // compact map to fetch entries
+                let idsToFetch = entries.compactMap { $0.identifier }
+                self.fetchEntriesByIDs(ids: idsToFetch, in: self.context)
+                
                 guard let identifier = entryRep.identifier else { continue }
                 
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
@@ -28,6 +37,9 @@ class CoreDataImporter {
                 }
             }
             completion(nil)
+            print("Syncing completed")
+            let endTime = CFAbsoluteTimeGetCurrent()
+            print("It took: \(beginTime - endTime) seconds to sync")
         }
     }
     
