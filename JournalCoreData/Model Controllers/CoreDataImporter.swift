@@ -10,54 +10,53 @@ import Foundation
 import CoreData
 
 class CoreDataImporter {
+    
     init(context: NSManagedObjectContext) {
         self.context = context
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
-        
+       
         self.context.perform {
+            
+        let entriesWithID = entries.map { $0.identifier }
+        let entryIDs = Dictionary(uniqueKeysWithValues: zip(entriesWithID, entries))
+        var entriesToCreate = entryIDs
+        
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", entriesWithID)
+        
+        let context = CoreDataStack.shared.container.newBackgroundContext()
+        
+        
+            
             print("started sync: \(Date())")
-            let entryIDsToFetch = entries.map { $0.identifier }
-            let entryIDs = Dictionary(uniqueKeysWithValues: zip(entryIDsToFetch, entries))
-            var entriesToCreate = entryIDs
-            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "identifier IN %@", entryIDsToFetch)
-            let context = CoreDataStack.shared.container.newBackgroundContext()
-            context.performAndWait {
                 do {
                     let exsistingEntries = try context.fetch(fetchRequest)
                     for entry in exsistingEntries {
-                        guard let identifier = entry.identifier,
-                            let representation = entryIDs[identifier] else { continue }
-                        entry.title = representation.title
-                        entry.bodyText = representation.bodyText
-                        entry.mood = representation.mood
-                        entriesToCreate.removeValue(forKey: identifier)
+                        guard let id = entry.identifier,
+                            let representation = entryIDs[id] else { continue }
+                        self.update(entry: entry, with: representation)
+                        entriesToCreate.removeValue(forKey: id)
                     }
                     for representation in entriesToCreate.values {
                         Entry(entryRepresentation: representation, context: context)
                     }
+                } catch {
+                    print("Error fetching Entry from persistant Store: \(error)")
+                }
+                
+                do {
                     try context.save()
                 } catch {
-                    print("Error fetching tasks from persistant Store: \(error)")
+                    print("Error saving to database: \(error)")
                 }
-            }
-//            for entryRep in entries {
-//                guard let identifier = entryRep.identifier else { continue }
-//
-//                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-//                if let entry = entry, entry != entryRep {
-//                    self.update(entry: entry, with: entryRep)
-//                } else if entry == nil {
-//                    _ = Entry(entryRepresentation: entryRep, context: self.context)
-//                }
-//            }
+            
             print("finished syncing: \(Date())")
             completion(nil)
         }
+      
     }
-    
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
         entry.title = entryRep.title
         entry.bodyText = entryRep.bodyText
