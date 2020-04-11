@@ -15,27 +15,33 @@ class CoreDataImporter {
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+        let representationsWithID = entries.filter { $0.identifier != nil }
+        let identifiersToFetch = representationsWithID.compactMap { $0.identifier! }
+        let representationsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, representationsWithID))
+        var entriesToCreate = representationsByID
+        
         self.context.perform {
-            guard let coreDataEntries = self.fetchAllEntriesFromPersistentStore(in: self.context) else {
-                // Core Data is empty. Save all entries to persistent store
-                for entryRep in entries {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
-                }
-                completion(nil)
+            guard let coreDataEntries = self.fetchEntriesFromPersistentStore(with: identifiersToFetch, in: self.context) else {
+                completion(NSError())
                 return
             }
             
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
+            // Update existing Core Data Entries
+            for entry in coreDataEntries {
+                guard let identifier = entry.identifier,
+                    let entryRep = representationsByID[identifier] else { continue }
                 
-                //let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                let entry = coreDataEntries.first { $0.identifier == identifier }
-                if let entry = entry, entry != entryRep {
+                if entry != entryRep {
                     self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
+                entriesToCreate.removeValue(forKey: identifier)
             }
+            
+            // Create new Entries in Core Data
+            for entryRep in entriesToCreate.values {
+                _ = Entry(entryRepresentation: entryRep, context: self.context)
+            }
+            
             completion(nil)
         }
     }
@@ -48,6 +54,7 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
+    /*
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
         
         guard let identifier = identifier else { return nil }
@@ -63,13 +70,19 @@ class CoreDataImporter {
         }
         return result
     }
+    */
     
-    private func fetchAllEntriesFromPersistentStore(in context: NSManagedObjectContext) -> [Entry]? {
+    private func fetchEntriesFromPersistentStore(with identifiers: [String]?, in context: NSManagedObjectContext) -> [Entry]? {
+        
+        guard let identifiers = identifiers else { return nil }
+        
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
         var results: [Entry]? = nil
         do {
             results = try context.fetch(fetchRequest)
+            if results == nil { results = [] }
         } catch {
             NSLog("Error fetching all entries: \(error)")
         }
