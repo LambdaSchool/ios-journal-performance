@@ -17,7 +17,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
         
-        refresh(self)
+        refresh(nil)
     }
     
     override func viewWillAppear(_ animated: Bool) {
