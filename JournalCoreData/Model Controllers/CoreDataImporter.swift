@@ -16,19 +16,36 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         print("Sync starts at", Date())
-        self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchEntries(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+        
+        DispatchQueue.global().async {
+            let entriesWithID = entries.filter { $0.identifier != nil }
+            let identifiersToFetch = entriesWithID.compactMap { $0.identifier }
+            let representationByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entriesWithID))
+            var entriesToCreate = representationByID
+            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        
+            self.context.perform {
+                do {
+                    let existingEntries = try self.context.fetch(fetchRequest)
+                    for entry in existingEntries {
+                        guard let id = entry.identifier,
+                            let representation = representationByID[id] else {
+                                self.context.delete(entry)
+                                continue
+                        }
+                        self.update(entry: entry, with: representation)
+                        entriesToCreate.removeValue(forKey: id)
+                    }
+                    for representation in entriesToCreate.values {
+                        Entry(entryRepresentation: representation, context: self.context)
+                    }
+                    completion(nil)
+                } catch {
+                    print("Error fetching entries for identifiers \(error)")
+                    completion(error)
                 }
+                print("Sync ends at", Date())
             }
-            completion(nil)
-            print("Sync ends at", Date())
         }
     }
     
@@ -38,28 +55,6 @@ class CoreDataImporter {
         entry.mood = entryRep.mood
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
-    }
-    
-    private func fetchEntries(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", [identifier])
-        
-        var result: Entry? = nil
-        var resultDictionary: [String:Entry] = [:]
-        
-        do {
-            let results = try context.fetch(fetchRequest)
-            for entry in results {
-                resultDictionary[entry.identifier!] = entry
-                result = entry
-            }
-        } catch {
-            NSLog("Error fetching single entry: \(error)")
-        }
-        return result
     }
     
     let context: NSManagedObjectContext
