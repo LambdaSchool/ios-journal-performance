@@ -140,7 +140,7 @@ class EntryController {
                 return
             }
             
-            context.perform {
+            context.performAndWait {
                 do {
                     try context.save()
                     completion(nil)
@@ -160,6 +160,8 @@ class EntryController {
             NSLog("Error saving managed object context: \(error)")
         }
     }
+    
+
     
     private var importer: CoreDataImporter?
 }
