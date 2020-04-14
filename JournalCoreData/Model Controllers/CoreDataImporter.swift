@@ -39,20 +39,19 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
+    private func fetchEntriesFromPersistentStore(with identifier: [String], in context: NSManagedObjectContext) -> [Entry]? {
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
         
-        var result: Entry? = nil
         do {
-            result = try context.fetch(fetchRequest).first
+            let entries = try context.fetch(fetchRequest)
+            return entries
         } catch {
-            NSLog("Error fetching single entry: \(error)")
+            NSLog("Error fetching entries: \(error)")
         }
-        return result
+        
+        return nil
     }
     
     let context: NSManagedObjectContext
