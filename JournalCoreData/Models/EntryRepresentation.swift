@@ -14,6 +14,38 @@ struct EntryRepresentation: Codable {
     var mood: String?
     var timestamp: Date?
     var identifier: String?
+
+    init(title: String?, bodyText: String?, mood: String?, timestamp: Date?, identifier: String?) {
+        self.title = title
+        self.bodyText = bodyText
+        self.mood = mood
+        self.timestamp = timestamp
+        self.identifier = identifier
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        let title = try? container.decode(String.self, forKey: .title)
+        let bodyText = try? container.decode(String.self, forKey: .bodyText)
+        let mood = try? container.decode(String.self, forKey: .mood)
+        let timestamp = try? container.decode(Date.self, forKey: .timestamp)
+        let identifier = try? container.decode(String.self, forKey: .identifier)
+
+        self.init(title: title ?? "(none)",
+                  bodyText: bodyText ?? "",
+                  mood: mood ?? Mood.neutral.rawValue,
+                  timestamp: timestamp ?? Date(),
+                  identifier: identifier ?? UUID().uuidString)
+    }
+
+    enum CodingKeys: CodingKey {
+        case title
+        case bodyText
+        case mood
+        case timestamp
+        case identifier
+    }
 }
 
 func ==(lhs: EntryRepresentation, rhs: Entry) -> Bool {
