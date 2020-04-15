@@ -23,7 +23,7 @@ class CoreDataImporter {
         
         let entriesWithID = representations.filter({ $0.identifier != nil })
         
-        let identifiersToFetch = entriesWithID.compactMap({ UUID(uuidString: $0.identifier!) })
+        let identifiersToFetch = entriesWithID.compactMap({ $0.identifier! })
         
         let representationsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entriesWithID))
         
@@ -41,11 +41,10 @@ class CoreDataImporter {
                 
                 for entry in existingEntries {
                     guard let id = entry.identifier,
-                        let identifier = UUID(uuidString: id),
-                        let representation = representationsByID[identifier] else { continue }
+                        let representation = representationsByID[id] else { continue }
                     self.update(entry: entry, with: representation)
                     
-                    entriesToCreate.removeValue(forKey: identifier)
+                    entriesToCreate.removeValue(forKey: id)
                 }
                 
                 for representation in entriesToCreate.values {
