@@ -22,6 +22,7 @@
 		46AA32ED2121315F003AC495 /* EntryDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32EC2121315F003AC495 /* EntryDetailViewController.swift */; };
 		46AA32EF21213184003AC495 /* EntryTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32EE21213184003AC495 /* EntryTableViewCell.swift */; };
 		46AA32F121213236003AC495 /* TimestampFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AA32F021213236003AC495 /* TimestampFormatter.swift */; };
+		9CCD116D24468EAF0029F8E6 /* Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CCD116C24468EAF0029F8E6 /* Cache.swift */; };
 		9D6A752921477CC100A4A0C3 /* CoreDataImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6A752821477CC100A4A0C3 /* CoreDataImporter.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,6 +45,7 @@
 		46AA32EE21213184003AC495 /* EntryTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryTableViewCell.swift; sourceTree = "<group>"; };
 		46AA32F021213236003AC495 /* TimestampFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampFormatter.swift; sourceTree = "<group>"; };
 		46F9C2242122456400E7FF73 /* JournalCoreData 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "JournalCoreData 2.xcdatamodel"; sourceTree = "<group>"; };
+		9CCD116C24468EAF0029F8E6 /* Cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cache.swift; sourceTree = "<group>"; };
 		9D6A752821477CC100A4A0C3 /* CoreDataImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataImporter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -103,6 +105,7 @@
 				4697668B2123E1A400E7FF73 /* Entry+Codable.swift */,
 				469766892123E0FA00E7FF73 /* EntryRepresentation.swift */,
 				46AA32F6212132FF003AC495 /* Core Data */,
+				9CCD116C24468EAF0029F8E6 /* Cache.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -225,6 +228,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9CCD116D24468EAF0029F8E6 /* Cache.swift in Sources */,
 				462A2D592122C6DF00E7FF73 /* Mood.swift in Sources */,
 				4697668C2123E1A400E7FF73 /* Entry+Codable.swift in Sources */,
 				46AA32EF21213184003AC495 /* EntryTableViewCell.swift in Sources */,
@@ -382,13 +386,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VXUQXR6S56;
+				DEVELOPMENT_TEAM = 34RR9VTTTP;
 				INFOPLIST_FILE = "$(SRCROOT)/JournalCoreData/Resources/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.LambdaSchool.JournalCoreData;
+				PRODUCT_BUNDLE_IDENTIFIER = lambdaStudent.HectorLedesma;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -400,13 +404,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VXUQXR6S56;
+				DEVELOPMENT_TEAM = 34RR9VTTTP;
 				INFOPLIST_FILE = "$(SRCROOT)/JournalCoreData/Resources/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.LambdaSchool.JournalCoreData;
+				PRODUCT_BUNDLE_IDENTIFIER = lambdaStudent.HectorLedesma;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -40,6 +40,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                // MARK: - Finish syncin
+                print("Finished syncin")
             }
         }
     }
