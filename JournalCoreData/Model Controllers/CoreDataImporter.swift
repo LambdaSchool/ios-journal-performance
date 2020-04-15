@@ -16,20 +16,40 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
+
+        let identifiersToFetch = entries.compactMap { $0.identifier }
+        let representationsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entries))
+        var tasksToCreate = representationsByID
+        
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
+        
         self.context.perform {
-            print("Started Sync \(Date())")
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
+            let start = Date()
+            print("Started Sync \(start)")
+
+            do {
+                let existingEntries = try self.context.fetch(fetchRequest)
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                for entry in existingEntries {
+                    guard let id = entry.identifier, let representation = representationsByID[id] else { continue }
+                    
+                    self.update(entry: entry, with: representation)
+                    tasksToCreate.removeValue(forKey: id)
                 }
+                
+                for representation in tasksToCreate.values {
+                    Entry(entryRepresentation: representation, context: self.context)
+                }
+            } catch {
+                NSLog("Error fetching entries from server: \(error)")
+                return
             }
-            print("Finished Sync \(Date())")
+
+            let finish = Date()
+            print("Finished Sync \(finish.timeIntervalSince(start))")
             completion(nil)
+
         }
     }
     
@@ -41,20 +61,21 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    private func fetchSingleEntryFromPersistentStore(with identifier: [String], in context: NSManagedObjectContext) -> [Entry]? {
         
-        guard let identifier = identifier else { return nil }
+        //guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
         
-        var result: Entry? = nil
+        //var result: Entry? = nil
         do {
-            result = try context.fetch(fetchRequest).first
+            let result = try context.fetch(fetchRequest)
+            return result
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
-        return result
+        return nil
     }
     
     let context: NSManagedObjectContext
