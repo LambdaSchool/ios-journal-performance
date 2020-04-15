@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import QuartzCore
 
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
@@ -93,9 +94,10 @@ class EntryController {
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
-        
+        //let start = CACurrentMediaTime()
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
-            
+            //let end = CACurrentMediaTime()
+            //print("time making server call: \(end - start)") // 2.7719.... seconds
             if let error = error {
                 NSLog("Error fetching entries from server: \(error)")
                 completion(nil, error)
@@ -109,7 +111,10 @@ class EntryController {
             }
 
             do {
+                //let start = CACurrentMediaTime()
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
+                //let end = CACurrentMediaTime()
+                //print("time decoding: \(end - start)") // 0.2713.... seconds
                 completion(entryReps, nil)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
@@ -123,17 +128,38 @@ class EntryController {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
             guard let representations = representations else { return }
+            
+            //let start = CACurrentMediaTime()
+            var ids: [String] = []
+            for representation in representations {
+                if let id = representation.identifier {
+                    ids.append(id)
+                }
+            }
+            //let end = CACurrentMediaTime()
+            //print("time creating ids array: \(end - start)") // 0.009288 seconds
+            var representationsByID: [String : EntryRepresentation] = [:]
+            for  (key, value) in ids.enumerated() {
+                representationsByID[value] = representations[key]
+            }
+            //let end2 = CACurrentMediaTime()
+            //print("time createing representationsByID dictionary: \(end2 - end)") // 0.02362 seconds
+            
             let moc = CoreDataStack.shared.container.newBackgroundContext()
-            self.updateEntries(with: representations, in: moc, completion: completion)
+            self.updateEntries(with: representationsByID, in: moc, completion: completion)
         }
+        
     }
     
-    private func updateEntries(with representations: [EntryRepresentation],
+    private func updateEntries(with representations: [String : EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
+        //let start = CACurrentMediaTime()
         importer?.sync(entries: representations) { (error) in
+            //let end = CACurrentMediaTime()
+            //print("time syncing with core data \(end - start)") // 141.2869 seconds
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
@@ -161,5 +187,5 @@ class EntryController {
         }
     }
     
-    private var importer: CoreDataImporter?
+    var importer: CoreDataImporter?
 }

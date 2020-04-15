@@ -18,6 +18,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
         
+        
         refresh(nil)
     }
     
@@ -31,15 +32,17 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+        print(Date())
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
-            
+            print(Date())
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                
             }
         }
     }
@@ -48,14 +51,35 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return fetchedResultsController.sections?[section].name
+//        switch section {
+//        case 0:
+//            return Mood.good.rawValue
+//        case 1:
+//            return Mood.neutral.rawValue
+//        case 2:
+//            return Mood.bad.rawValue
+//        default:
+//            return nil
+//        }
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
         return fetchedResultsController.sections?.count ?? 1
+//        return Mood.allCases.count
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return fetchedResultsController.sections?[section].numberOfObjects ?? 0
+//        switch section {
+//        case 0:
+//            return happyEntries.count
+//        case 1:
+//            return neutralEntries.count
+//        case 2:
+//            return sadEntries.count
+//        default:
+//            return 0
+//        }
     }
     
     
@@ -63,6 +87,18 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "EntryCell", for: indexPath) as? EntryTableViewCell else { return UITableViewCell() }
         
         let entry = fetchedResultsController.object(at: indexPath)
+//        let entry: Entry
+//        switch indexPath.section {
+//        case 0:
+//            entry = happyEntries[indexPath.row]
+//        case 1:
+//            entry = neutralEntries[indexPath.row]
+//        case 2:
+//            entry = sadEntries[indexPath.row]
+//        default:
+//            entry = sadEntries[indexPath.row]
+//        }
+        
         cell.entry = entry
         
         return cell
@@ -149,6 +185,49 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Properties
     
     let entryController = EntryController()
+    
+//    lazy var entriesCache: [EntryRepresentation] = {
+//        //let start = CACurrentMediaTime()
+//        let dictCache: [String : EntryRepresentation]
+//        if let importer = entryController.importer {
+//            dictCache = importer.coreCache
+//        } else {
+//            dictCache = [:]
+//        }
+//        //let end = CACurrentMediaTime()
+//        //print("time creating local cache array: \(end - start)") // 0.004839 seconds
+//        return Array(dictCache.values)
+//    }()
+//
+//    lazy var happyEntries: [Entry] = {
+//        var tempArray: [Entry] = []
+//        for entry in entriesCache {
+//            if entry.mood == Mood.good.rawValue, let tempEntry = Entry.init(entryRepresentation: entry) {
+//                tempArray.append(tempEntry)
+//            }
+//        }
+//        return tempArray
+//    }()
+//
+//    lazy var neutralEntries: [Entry] = {
+//        var tempArray: [Entry] = []
+//        for entry in entriesCache {
+//            if entry.mood == Mood.neutral.rawValue, let tempEntry = Entry.init(entryRepresentation: entry) {
+//                tempArray.append(tempEntry)
+//            }
+//        }
+//        return tempArray
+//    }()
+//
+//    lazy var sadEntries: [Entry] = {
+//       var tempArray: [Entry] = []
+//        for entry in entriesCache {
+//            if entry.mood == Mood.bad.rawValue, let tempEntry = Entry.init(entryRepresentation: entry) {
+//                tempArray.append(tempEntry)
+//            }
+//        }
+//        return tempArray
+//    }()
     
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
