@@ -31,7 +31,10 @@ class CoreDataImporter {
             for entry in entriesFromServer {
                 guard let id = entry.identifier,
                     let representation = representationsByID[id] else { continue }
-                self.update(entry: entry, with: representation)
+                // FIXME: Remove this test for not equal for horrible performace.
+                if entry != representation {
+                    self.update(entry: entry, with: representation)
+                }
                 entriesToCreate.removeValue(forKey: id)
             }
             
