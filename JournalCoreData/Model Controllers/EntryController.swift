@@ -187,5 +187,5 @@ class EntryController {
         }
     }
     
-    private var importer: CoreDataImporter?
+    var importer: CoreDataImporter?
 }

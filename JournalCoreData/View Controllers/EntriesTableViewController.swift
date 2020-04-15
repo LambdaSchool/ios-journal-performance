@@ -17,6 +17,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
+        if let importer = entryController.importer {
+            entriesCache = importer.coreCache
+        }
         
         refresh(nil)
     }
@@ -150,6 +153,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Properties
     
     let entryController = EntryController()
+    var entriesCache: [String : EntryRepresentation] = [:]
     
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
