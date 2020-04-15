@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import QuartzCore
 
 class CoreDataImporter {
     init(context: NSManagedObjectContext) {
@@ -48,7 +49,10 @@ class CoreDataImporter {
         
         var result: Entry? = nil
         do {
+            //let start = CACurrentMediaTime()
             result = try context.fetch(fetchRequest).first
+            //let end = CACurrentMediaTime()
+            //print("time fething 1 request: \(end - start)") // ~ 0.03 seconds
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }

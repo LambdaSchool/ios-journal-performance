@@ -31,12 +31,13 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+        print(Date())
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
-            
+            print(Date())
             DispatchQueue.main.async {
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
