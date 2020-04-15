@@ -128,13 +128,30 @@ class EntryController {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
             guard let representations = representations else { return }
+            
+            //let start = CACurrentMediaTime()
+            var ids: [String] = []
+            for representation in representations {
+                if let id = representation.identifier {
+                    ids.append(id)
+                }
+            }
+            //let end = CACurrentMediaTime()
+            //print("time creating ids array: \(end - start)") // 0.009288 seconds
+            var representationsByID: [String : EntryRepresentation] = [:]
+            for  (key, value) in ids.enumerated() {
+                representationsByID[value] = representations[key]
+            }
+            //let end2 = CACurrentMediaTime()
+            //print("time createing representationsByID dictionary: \(end2 - end)") // 0.02362 seconds
+            
             let moc = CoreDataStack.shared.container.newBackgroundContext()
-            self.updateEntries(with: representations, in: moc, completion: completion)
+            self.updateEntries(with: representationsByID, in: moc, completion: completion)
         }
         
     }
     
-    private func updateEntries(with representations: [EntryRepresentation],
+    private func updateEntries(with representations: [String : EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
