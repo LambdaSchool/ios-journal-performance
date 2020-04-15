@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
+let baseURL = URL(string: "https://journal-54160.firebaseio.com/")!
 
 class EntryController {
         
@@ -89,7 +89,9 @@ class EntryController {
             completion(nil)
         }.resume()
     }
-    
+    init() {
+        fetchEntriesFromServer()
+    }
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
@@ -110,6 +112,7 @@ class EntryController {
 
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
+                self.updateEntries(with: entryReps)
                 completion(entryReps, nil)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
@@ -123,32 +126,24 @@ class EntryController {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
             guard let representations = representations else { return }
-            let moc = CoreDataStack.shared.container.newBackgroundContext()
-            self.updateEntries(with: representations, in: moc, completion: completion)
+            self.updateEntries(with: representations, completion: completion)
         }
     }
     
-    private func updateEntries(with representations: [EntryRepresentation],
-                               in context: NSManagedObjectContext,
-                               completion: @escaping ((Error?) -> Void) = { _ in }) {
+    private func updateEntries(with representations: [EntryRepresentation],completion: @escaping ((Error?) -> Void) = { _ in }) {
         
-        importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
-            if let error = error {
-                NSLog("Error syncing entries from server: \(error)")
+        importer.updateEntries(with: representations)
+            
+        
+        let context = CoreDataStack.shared.container.newBackgroundContext()
+        context.performAndWait {
+            do {
+                try context.save()
+                completion(nil)
+            } catch {
+                NSLog("Error saving sync context: \(error)")
                 completion(error)
                 return
-            }
-            
-            context.perform {
-                do {
-                    try context.save()
-                    completion(nil)
-                } catch {
-                    NSLog("Error saving sync context: \(error)")
-                    completion(error)
-                    return
-                }
             }
         }
     }
@@ -161,5 +156,5 @@ class EntryController {
         }
     }
     
-    private var importer: CoreDataImporter?
+    private var importer = CoreDataImporter()
 }

@@ -17,8 +17,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
-        
-        refresh(nil)
+
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -38,7 +37,6 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
-                self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
         }
