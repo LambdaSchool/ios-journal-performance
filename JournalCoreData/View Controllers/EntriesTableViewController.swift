@@ -39,6 +39,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                CoreDataStack.shared.mainContext.reset()
+                try! self.fetchedResultsController.performFetch()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
                 // MARK: - Finish syncin
@@ -154,16 +156,18 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     let entryController = EntryController()
     
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+        
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
+        moc.reset()
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
         
         try! frc.performFetch()
-        moc.reset()
+        
         return frc
     }()
     
