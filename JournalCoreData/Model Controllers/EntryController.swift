@@ -9,7 +9,8 @@
 import Foundation
 import CoreData
 
-let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
+let baseURL = URL(string: "https://journal-shawngee.firebaseio.com/")!
+//let baseURL = URL(string: "https://journal-coredata-b58e9.firebaseio.com/")!
 
 class EntryController {
         
@@ -120,12 +121,15 @@ class EntryController {
     }
     
     func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
+        // MARK: - Start syncin
+        print("Start syncin.")
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
             guard let representations = representations else { return }
             let moc = CoreDataStack.shared.container.newBackgroundContext()
             self.updateEntries(with: representations, in: moc, completion: completion)
         }
+        
     }
     
     private func updateEntries(with representations: [EntryRepresentation],

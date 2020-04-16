@@ -10,23 +10,41 @@ import Foundation
 import CoreData
 
 class CoreDataImporter {
+    
+    // MARK: - Cache
+    var cache: Cache<String, Entry>
+    
     init(context: NSManagedObjectContext) {
         self.context = context
+        self.cache = Cache<String, Entry>()
+        populateCache { error in
+            if let error = error {
+                print("Oopsie error.")
+            }
+        }
+        
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                if self.cache.value(for: identifier) == nil {
+                    if let newEntry = Entry(entryRepresentation: entryRep, context: self.context) {
+                        self.cache.cache(value: newEntry, for: identifier)
+                    }
+                } else {
+                    let entry = self.cache.value(for: identifier)
+                    if let entry = entry {
+                        self.update(entry: entry, with: entryRep)
+                    }
                 }
             }
+            
+            
             completion(nil)
         }
     }
@@ -39,7 +57,7 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    private func fetchSingleEntryFromPersistentStore(with identifier: String?,in context: NSManagedObjectContext) -> Entry? {
         
         guard let identifier = identifier else { return nil }
         
@@ -53,6 +71,30 @@ class CoreDataImporter {
             NSLog("Error fetching single entry: \(error)")
         }
         return result
+    }
+    
+    private func populateCache(completion: @escaping (Error?) -> Void) {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        // MARK: - CAUSE OF CRASH
+        // This was the cause of the crash. Originally, I completely failed to realize CoreDataImporter operates with a BACKGROUND Context. So I had been usuing MAIN Context to populate cache which caused everything to lock up.
+        let moc = self.context
+        
+        do {
+            let request = try moc.fetch(fetchRequest)
+            for entry in request {
+                guard let identifier = entry.identifier else {
+                    let error = NSError()
+                    NSLog("Error unwrapping identifier from fetched entry")
+                    completion(error)
+                    return
+                }
+                cache.cache(value: entry, for: identifier)
+            }
+        } catch {
+            NSLog("Error fetching core data Entries")
+            completion(error)
+            return
+        }
     }
     
     let context: NSManagedObjectContext
