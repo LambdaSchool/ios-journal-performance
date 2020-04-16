@@ -29,8 +29,6 @@ class CoreDataImporter {
         
         self.context.perform {
             
-//            var tempCache: [String : EntryRepresentation] = [:]
-            
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
@@ -39,20 +37,11 @@ class CoreDataImporter {
                         self.cache.cache(value: newEntry, for: identifier)
                     }
                 } else {
-//                    let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
                     let entry = self.cache.value(for: identifier)
                     if let entry = entry {
                         self.update(entry: entry, with: entryRep)
                     }
                 }
-                
-//                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-//                if let entry = entry, entry != entryRep {
-//                    self.update(entry: entry, with: entryRep)
-//                } else if entry == nil {
-//                    _ = Entry(entryRepresentation: entryRep, context: self.context)
-//                    tempCache[identifier] = entryRep
-//                }
             }
             
             
@@ -86,7 +75,9 @@ class CoreDataImporter {
     
     private func populateCache(completion: @escaping (Error?) -> Void) {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        let moc = CoreDataStack.shared.mainContext
+        // MARK: - CAUSE OF CRASH
+        // This was the cause of the crash. Originally, I completely failed to realize CoreDataImporter operates with a BACKGROUND Context. So I had been usuing MAIN Context to populate cache which caused everything to lock up.
+        let moc = self.context
         
         do {
             let request = try moc.fetch(fetchRequest)

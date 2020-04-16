@@ -31,6 +31,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+//        CoreDataStack.shared.mainContext.reset()
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
@@ -162,7 +163,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         frc.delegate = self
         
         try! frc.performFetch()
-        
+        moc.reset()
         return frc
     }()
     
