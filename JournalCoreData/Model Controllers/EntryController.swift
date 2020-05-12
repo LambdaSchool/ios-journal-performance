@@ -140,7 +140,7 @@ class EntryController {
                 return
             }
             
-            context.perform {
+            context.performAndWait {
                 do {
                     try context.save()
                     completion(nil)
