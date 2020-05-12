@@ -12,10 +12,6 @@ import CoreData
 let baseURL = URL(string: "https://journal-5b606.firebaseio.com/")!
 
 class EntryController {
-
-    init() {
-           fetchEntriesFromServer()
-       }
         
     func createEntry(with title: String, bodyText: String, mood: String) {
         
