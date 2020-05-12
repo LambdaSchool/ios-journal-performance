@@ -91,6 +91,7 @@ class EntryController {
     }
     
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
+        NSLog("Began syncing")
         
         let requestURL = baseURL.appendingPathExtension("json")
         
@@ -150,6 +151,8 @@ class EntryController {
                     return
                 }
             }
+            
+            NSLog("Finished syncing")
         }
     }
     
