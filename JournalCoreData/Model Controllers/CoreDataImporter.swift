@@ -31,7 +31,6 @@ class CoreDataImporter {
                         guard let identifier = entry.identifier,
                             let representation = entriesByID[identifier] else { continue }
                         self.update(entry: entry, with: representation)
-                        print("ENTRIES TO CREATE After\(entriesToCreate)")
 
                     }
 
@@ -43,16 +42,6 @@ class CoreDataImporter {
                     NSLog("error fetching entries with IDs: \(entriesToFetch), with error: \(error)")
                 }
             }
-//            for entryRep in entries {
-//                guard let identifier = entryRep.identifier else { continue }
-//                let entryArray = [entryRep.identifier]
-//                let entry = self.fetchSingleEntryFromPersistentStore(with: [identifier], in: self.context)
-//                if let entry = entry, entry != entryRep {
-//                    self.update(entry: entry, with: entryRep)
-//                } else if entry == nil {
-//                    _ = Entry(entryRepresentation: entryRep, context: self.context)
-//                }
-//            }
             completion(nil)
         }
     
