@@ -31,7 +31,7 @@ class CoreDataImporter {
                         guard let identifier = entry.identifier,
                             let representation = entriesByID[identifier] else { continue }
                         self.update(entry: entry, with: representation)
-
+                        entriesToCreate.removeValue(forKey: identifier)
                     }
 
                     for entry in entriesToCreate.values {
@@ -41,8 +41,11 @@ class CoreDataImporter {
                 } catch {
                     NSLog("error fetching entries with IDs: \(entriesToFetch), with error: \(error)")
                 }
+
+                   completion(nil)
             }
-            completion(nil)
+
+
         }
     
     
@@ -52,22 +55,6 @@ class CoreDataImporter {
         entry.mood = entryRep.mood
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
-    }
-    
-    private func fetchSingleEntryFromPersistentStore(with identifier: [String]?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
-        
-        var result: Entry? = nil
-        do {
-            result = try context.fetch(fetchRequest).first
-        } catch {
-            NSLog("Error fetching single entry: \(error)")
-        }
-        return result
     }
     
     let context: NSManagedObjectContext
