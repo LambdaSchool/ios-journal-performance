@@ -21,6 +21,8 @@ class CoreDataStack {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
+        // in order to automatically marge changes from parewnt add this to container
+        container.viewContext.automaticallyMergesChangesFromParent = true
         return container
     }()
     
