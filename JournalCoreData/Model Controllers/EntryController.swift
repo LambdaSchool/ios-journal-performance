@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
+let baseURL = URL(string: "https://journal-5b606.firebaseio.com/")!
 
 class EntryController {
         
@@ -93,6 +93,7 @@ class EntryController {
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
+        print("called fetch entries from server method")
         
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
             
@@ -110,6 +111,7 @@ class EntryController {
 
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
+                print("fetched entries from server")
                 completion(entryReps, nil)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
