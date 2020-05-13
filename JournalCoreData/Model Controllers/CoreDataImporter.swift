@@ -48,6 +48,7 @@ class CoreDataImporter {
         
         var result: Entry? = nil
         do {
+            //FIXME: detected the issue
             result = try context.fetch(fetchRequest).first
         } catch {
             NSLog("Error fetching single entry: \(error)")
