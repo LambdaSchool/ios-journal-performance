@@ -20,7 +20,10 @@ class CoreDataImporter {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
+                // This is it folks
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                
+                
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
                 } else if entry == nil {
