@@ -38,6 +38,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                let context = CoreDataStack.shared.mainContext
+                context.reset()
+                try! self.fetchedResultsController.performFetch()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
