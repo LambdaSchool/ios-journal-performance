@@ -43,6 +43,8 @@ class CoreDataImporter {
         
         guard let identifier = identifier else { return nil }
         
+        let identifierArray = [String]()
+        
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
         
