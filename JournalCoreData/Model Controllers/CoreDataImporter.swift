@@ -19,7 +19,6 @@ class CoreDataImporter {
         self.context.perform {
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
-                
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
@@ -39,12 +38,12 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    private func fetchSingleEntryFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> Entry? {
         
-        guard let identifier = identifier else { return nil }
+//        guard let identifier = identifiers else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
         
         var result: Entry? = nil
         do {
