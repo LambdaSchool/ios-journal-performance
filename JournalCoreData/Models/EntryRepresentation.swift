@@ -14,6 +14,12 @@ struct EntryRepresentation: Codable {
     var mood: String?
     var timestamp: Date?
     var identifier: String?
+    var idArr: [String] = []
+    
+    
+    func fetch() {
+        
+    }
 }
 
 func ==(lhs: EntryRepresentation, rhs: Entry) -> Bool {
@@ -34,3 +40,6 @@ func !=(lhs: EntryRepresentation, rhs: Entry) -> Bool {
 func !=(lhs: Entry, rhs: EntryRepresentation) -> Bool {
     return rhs != lhs
 }
+
+
+// part 2
