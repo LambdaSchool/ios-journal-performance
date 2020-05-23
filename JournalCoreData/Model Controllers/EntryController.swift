@@ -123,12 +123,26 @@ class EntryController {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
             guard let representations = representations else { return }
+            
+            var ids: [String] = []
+            for representation in representations {
+                if let id = representation.identifier {
+                    ids.append(id)
+                }
+            }
+            
+            var representationsByID: [String: EntryRepresentation] = [:]
+            for (key, value) in ids.enumerated() {
+                representationsByID[value] = representations[key]
+            }
+            
             let moc = CoreDataStack.shared.container.newBackgroundContext()
-            self.updateEntries(with: representations, in: moc, completion: completion)
+            
+            self.updateEntries(with: representationsByID, in: moc, completion: completion)
         }
     }
     
-    private func updateEntries(with representations: [EntryRepresentation],
+    private func updateEntries(with representations: [String: EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
@@ -161,5 +175,5 @@ class EntryController {
         }
     }
     
-    private var importer: CoreDataImporter?
+    var importer: CoreDataImporter?
 }
