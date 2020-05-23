@@ -94,6 +94,8 @@ class EntryController {
         
         let requestURL = baseURL.appendingPathExtension("json")
         
+        NSLog("start sync")
+        
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
             
             if let error = error {
@@ -107,9 +109,12 @@ class EntryController {
                 completion(nil, NSError())
                 return
             }
+        
+            NSLog("got entries from server")
 
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
+                NSLog("decoding complete")
                 completion(entryReps, nil)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
@@ -125,6 +130,8 @@ class EntryController {
             guard let representations = representations else { return }
             let moc = CoreDataStack.shared.container.newBackgroundContext()
             self.updateEntries(with: representations, in: moc, completion: completion)
+            
+            NSLog("importing done")
         }
     }
     
