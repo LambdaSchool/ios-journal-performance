@@ -128,7 +128,7 @@ class EntryController {
         }
     }
     
-    private func updateEntries(with representations: [EntryRepresentation],
+    private func updateEntries(with representations: [String : EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
