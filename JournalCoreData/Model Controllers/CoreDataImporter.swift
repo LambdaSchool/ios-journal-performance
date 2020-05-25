@@ -14,19 +14,32 @@ class CoreDataImporter {
         self.context = context
     }
     
-    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+    // MARK: - Properties
+    
+    let context: NSManagedObjectContext
+    var coreDataDictionary : [String : EntryRepresentation] = [:]
+    
+    // MARK: - Methods
+    func sync(entries: [String : EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
+            let startDate = Date()
+            guard let entriesInCoreData = self.fetchEntriesFromPersistentStore(in: self.context) else { return }
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
+                // This is it folks
+            for (id, entryRep) in entries {
+                let entry = entriesInCoreData[id]
+                if let entry = entry,
+                    entry != entryRep {
                     self.update(entry: entry, with: entryRep)
                 } else if entry == nil {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            
+            self.coreDataDictionary = entries
+            let finishedDate = Date()
+            print("sync time: \(finishedDate.timeIntervalSince(startDate))")
             completion(nil)
         }
     }
@@ -39,21 +52,43 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
+    private func fetchEntriesFromPersistentStore(in context: NSManagedObjectContext) -> [String : Entry]? {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
         
-        var result: Entry? = nil
+        var result: [Entry]?
+        
         do {
-            result = try context.fetch(fetchRequest).first
+            result = try context.fetch(fetchRequest)
         } catch {
-            NSLog("Error fetching single entry: \(error)")
+            NSLog("Error fetching entries from persistent store \(error)")
         }
-        return result
+        guard let unwrappedResult = result else { return nil }
+        var entriesById : [String : Entry] = [:]
+        
+        unwrappedResult.forEach { entry in
+            if let id = entry.identifier {
+                entriesById[id] = entry
+            }
+        }
+        
+        return entriesById
     }
     
-    let context: NSManagedObjectContext
+    //    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    //
+    //        guard let identifier = identifier else { return nil }
+    //
+    //        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+    //        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+    //
+    //        var result: Entry? = nil
+    //        do {
+    //            result = try context.fetch(fetchRequest).first
+    //        } catch {
+    //            NSLog("Error fetching single entry: \(error)")
+    //        }
+    //        return result
+    //    }
+    
+    
 }
