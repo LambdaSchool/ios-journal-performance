@@ -124,7 +124,16 @@ class EntryController {
             if error != nil { return }
             guard let representations = representations else { return }
             let moc = CoreDataStack.shared.container.newBackgroundContext()
-            self.updateEntries(with: representations, in: moc, completion: completion)
+            
+            var representationsWithId: [String : EntryRepresentation] = [:]
+            
+            for rep in representations {
+                if let id = rep.identifier {
+                    representationsWithId[id] = rep
+                }
+            }
+            
+            self.updateEntries(with: representationsWithId, in: moc, completion: completion)
         }
     }
     

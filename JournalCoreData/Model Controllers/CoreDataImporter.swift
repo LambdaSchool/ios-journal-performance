@@ -38,8 +38,8 @@ class CoreDataImporter {
             }
             
             self.coreDataDictionary = entries
-            
-            print("sync finished: \(Date().compare(startDate))")
+            let finishedDate = Date()
+            print("sync time: \(finishedDate.timeIntervalSince(startDate))")
             completion(nil)
         }
     }
