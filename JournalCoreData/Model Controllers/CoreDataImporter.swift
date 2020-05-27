@@ -33,11 +33,6 @@ class CoreDataImporter {
             let localEntriesByIdentifier = Dictionary(uniqueKeysWithValues:
                 zip(localIds, localEntries)
             )
-//            var localEntriesByIdentifier: [String: Entry] = [:]
-//            for localEntry in localEntries {
-//                guard let id = localEntry.identifier else { continue }
-//                localEntriesByIdentifier[id] = localEntry
-//            }
             for entryRep in entryReps {
                 guard let repId = entryRep.identifier else { fatalError() }
                 
