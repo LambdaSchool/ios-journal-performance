@@ -30,6 +30,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Actions
     
     @IBAction func refresh(_ sender: Any?) {
+        print("Syncing has not yet started")
         refreshControl?.beginRefreshing()
         entryController.refreshEntriesFromServer { error in
             if let error = error {
@@ -39,7 +40,10 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             
             DispatchQueue.main.async {
                 self.tableView.reloadData()
+                CoreDataStack.shared.mainContext.reset()
                 self.refreshControl?.endRefreshing()
+                print("Syncing has finished")
+
             }
         }
     }
