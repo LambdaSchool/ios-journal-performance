@@ -17,6 +17,7 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+            print(Date().description)
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
                 
@@ -27,6 +28,7 @@ class CoreDataImporter {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
+            print(Date().description)
             completion(nil)
         }
     }
