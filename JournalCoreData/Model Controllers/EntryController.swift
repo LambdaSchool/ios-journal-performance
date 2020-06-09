@@ -12,7 +12,7 @@ import CoreData
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
-        
+    
     func createEntry(with title: String, bodyText: String, mood: String) {
         
         let entry = Entry(title: title, bodyText: bodyText, mood: mood)
@@ -107,7 +107,7 @@ class EntryController {
                 completion(nil, NSError())
                 return
             }
-
+            
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)
@@ -133,7 +133,7 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
+        importer?.sync(entryRepresentations: representations) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
