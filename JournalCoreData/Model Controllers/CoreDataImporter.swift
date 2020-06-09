@@ -20,7 +20,7 @@ class CoreDataImporter {
         
         self.context.perform {
             let existingEntries = self.fetchEntriesFromPersistentStore(with: id, in: self.context)
-            
+
             for entry in existingEntries {
                 guard let id = entry.identifier,
                     let representation = entrysByRep[id] else { continue }
@@ -30,7 +30,7 @@ class CoreDataImporter {
         }
         completion(nil)
     }
-    
+
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
         entry.title = entryRep.title
         entry.bodyText = entryRep.bodyText
@@ -39,25 +39,27 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        guard let identifier = identifier else { return nil }
+    private func fetchSingleEntryFromPersistentStore(with identifier: [String], in context: NSManagedObjectContext) -> [String : Entry] {
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifier)
         
-        var result: Entry? = nil
+        var result = [String: Entry]()
         do {
-            result = try context.fetch(fetchRequest).first
+            result = try context.fetch(fetchRequest).reduce(into: [String: Entry]()) {
+                guard let id = $1.identifier else { return }
+                $0[id] = $1
+            }
         } catch {
             NSLog("Error fetching single entry: \(error)")
         }
         return result
     }
-    
+
     private func fetchEntriesFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> [Entry] {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
-        
+
         do {
             let entries = try context.fetch(fetchRequest)
             return entries
@@ -66,6 +68,6 @@ class CoreDataImporter {
             return []
         }
     }
-    
+
     let context: NSManagedObjectContext
 }

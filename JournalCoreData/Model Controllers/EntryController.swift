@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-let baseURL = URL(string: "https://journaldebugging-74d34.firebaseio.com/")!
+let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
         
@@ -140,7 +140,7 @@ class EntryController {
                 return
             }
             
-            context.perform {
+            context.performAndWait {
                 do {
                     try context.save()
                     completion(nil)
