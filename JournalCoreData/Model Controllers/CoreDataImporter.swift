@@ -15,20 +15,20 @@ class CoreDataImporter {
     }
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+        let id = entries.compactMap { $0.identifier }
+        var entrysByRep = Dictionary(uniqueKeysWithValues: zip(id, entries))
         
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
-                }
+            let existingEntries = self.fetchEntriesFromPersistentStore(with: id, in: self.context)
+            
+            for entry in existingEntries {
+                guard let id = entry.identifier,
+                    let representation = entrysByRep[id] else { continue }
+                self.update(entry: entry, with: representation)
+                entrysByRep.removeValue(forKey: id)
             }
-            completion(nil)
         }
+        completion(nil)
     }
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
@@ -40,7 +40,6 @@ class CoreDataImporter {
     }
     
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
         guard let identifier = identifier else { return nil }
         
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
@@ -53,6 +52,19 @@ class CoreDataImporter {
             NSLog("Error fetching single entry: \(error)")
         }
         return result
+    }
+    
+    private func fetchEntriesFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> [Entry] {
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
+        
+        do {
+            let entries = try context.fetch(fetchRequest)
+            return entries
+        } catch {
+            NSLog("Error fetching entries: \(error)")
+            return []
+        }
     }
     
     let context: NSManagedObjectContext
