@@ -119,6 +119,8 @@ class EntryController {
         }.resume()
     }
     
+    // this function takes in an escaping closure
+    //
     func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
@@ -133,7 +135,7 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
+        importer?.sync(entryRepresentations: representations) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
