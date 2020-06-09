@@ -70,6 +70,6 @@ class CoreDataImporter {
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
     }
-
+    
     let context: NSManagedObjectContext
 }

@@ -12,7 +12,7 @@ import CoreData
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
-        
+    
     func createEntry(with title: String, bodyText: String, mood: String) {
         
         let entry = Entry(title: title, bodyText: bodyText, mood: mood)
@@ -107,7 +107,7 @@ class EntryController {
                 completion(nil, NSError())
                 return
             }
-
+            
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
                 completion(entryReps, nil)
@@ -119,8 +119,6 @@ class EntryController {
         }.resume()
     }
     
-    // this function takes in an escaping closure
-    //
     func refreshEntriesFromServer(completion: @escaping ((Error?) -> Void) = { _ in }) {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
