@@ -31,7 +31,6 @@ class CoreDataImporter {
             }
             completion(nil)
         }
-        
     }
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {

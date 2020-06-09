@@ -36,8 +36,10 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
-            
+            // reseting main context when we make fetch request
             DispatchQueue.main.async {
+                CoreDataStack.shared.mainContext.reset()
+                try? self.fetchedResultsController.performFetch()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
