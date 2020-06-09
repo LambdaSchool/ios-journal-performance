@@ -90,8 +90,8 @@
 		46AA32F22121329B003AC495 /* Model Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				46AA32E821212CD3003AC495 /* EntryController.swift */,
 				9D6A752821477CC100A4A0C3 /* CoreDataImporter.swift */,
+				46AA32E621212C78003AC495 /* CoreDataStack.swift */,
 			);
 			path = "Model Controllers";
 			sourceTree = "<group>";
@@ -102,6 +102,7 @@
 				46AA32E421212C11003AC495 /* Entry+Convenience.swift */,
 				4697668B2123E1A400E7FF73 /* Entry+Codable.swift */,
 				469766892123E0FA00E7FF73 /* EntryRepresentation.swift */,
+				46AA32E821212CD3003AC495 /* EntryController.swift */,
 				46AA32F6212132FF003AC495 /* Core Data */,
 			);
 			path = Models;
@@ -127,7 +128,6 @@
 		46AA32F6212132FF003AC495 /* Core Data */ = {
 			isa = PBXGroup;
 			children = (
-				46AA32E621212C78003AC495 /* CoreDataStack.swift */,
 				46AA32E121212A86003AC495 /* JournalCoreData.xcdatamodeld */,
 			);
 			path = "Core Data";
@@ -382,13 +382,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VXUQXR6S56;
+				DEVELOPMENT_TEAM = 6WA5TYMFND;
 				INFOPLIST_FILE = "$(SRCROOT)/JournalCoreData/Resources/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.LambdaSchool.JournalCoreData;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KelsonHartle.JournalCoreData;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -400,13 +400,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = VXUQXR6S56;
+				DEVELOPMENT_TEAM = 6WA5TYMFND;
 				INFOPLIST_FILE = "$(SRCROOT)/JournalCoreData/Resources/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.LambdaSchool.JournalCoreData;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KelsonHartle.JournalCoreData;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
