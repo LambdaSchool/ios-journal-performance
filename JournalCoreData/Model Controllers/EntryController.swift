@@ -15,7 +15,7 @@ class EntryController {
         
     func createEntry(with title: String, bodyText: String, mood: String) {
         
-        let entry = Entry(title: title, bodyText: bodyText, mood: mood)
+        let entry = Entry()
         
         put(entry: entry)
         
@@ -93,7 +93,6 @@ class EntryController {
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
         let requestURL = baseURL.appendingPathExtension("json")
-        print("Called fetch entries from server method")
         
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
             
