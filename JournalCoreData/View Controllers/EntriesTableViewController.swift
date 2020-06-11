@@ -167,7 +167,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         do {
             try frc.performFetch()
         } catch let frcError {
-            NSLog("Error fetching data from frc: \(#file), \(#function), \(#line)")
+            NSLog("Error fetching data from frc)")
         }
         return frc
     }()
