@@ -38,7 +38,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
-                self.tableView.reloadData()
+                // made adjustment here
+                self.fetchedResultsController.managedObjectContext.reset()
                 self.refreshControl?.endRefreshing()
             }
         }
@@ -120,6 +121,9 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         case .delete:
             guard let indexPath = indexPath else { return }
             tableView.deleteRows(at: [indexPath], with: .automatic)
+            // Added unknown default
+        @unknown default:
+            break
         }
     }
     
@@ -155,12 +159,16 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
         let moc = CoreDataStack.shared.mainContext
+        moc.reset()
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
         
         frc.delegate = self
         
-        try! frc.performFetch()
-        
+        do {
+            try frc.performFetch()
+        } catch let frcError {
+            NSLog("Error fetching data from frc: \(#file), \(#function), \(#line)")
+        }
         return frc
     }()
     
