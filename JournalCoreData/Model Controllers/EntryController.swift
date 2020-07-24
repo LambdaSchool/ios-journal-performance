@@ -133,7 +133,14 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
+        print("Starting Sync...")
+        let start = CFAbsoluteTimeGetCurrent()
         importer?.sync(entries: representations) { (error) in
+            defer {
+                let diff = CFAbsoluteTimeGetCurrent() - start
+                print("sync finished!")
+                print("Time to sync: \(diff) seconds")
+            }
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
