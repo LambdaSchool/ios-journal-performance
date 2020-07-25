@@ -149,6 +149,7 @@ class EntryController {
                     completion(error)
                     return
                 }
+                print("finished sync")
             }
         }
     }
