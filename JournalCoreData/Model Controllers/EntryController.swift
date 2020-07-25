@@ -92,6 +92,7 @@ class EntryController {
     
     func fetchEntriesFromServer(completion: @escaping (([EntryRepresentation]?, Error?) -> Void) = { _,_ in }) {
         
+        // closure
         let requestURL = baseURL.appendingPathExtension("json")
         
         URLSession.shared.dataTask(with: requestURL) { (data, _, error) in
@@ -157,9 +158,12 @@ class EntryController {
         do {
             try CoreDataStack.shared.mainContext.save()
         } catch {
-            NSLog("Error saving managed object context: \(error)")
+            NSLog("\(error): Error saving managed object context: ")
         }
     }
     
     private var importer: CoreDataImporter?
 }
+
+
+// Redo
