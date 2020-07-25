@@ -30,6 +30,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Actions
     
     @IBAction func refresh(_ sender: Any?) {
+        print("Started Refresh \(Date())")
         refreshControl?.beginRefreshing()
         entryController.refreshEntriesFromServer { error in
             if let error = error {
@@ -38,8 +39,11 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                CoreDataStack.shared.mainContext.reset()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                print("Refreshed Ended\(Date())")
+            
             }
         }
     }
@@ -164,4 +168,12 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         return frc
     }()
     
+//    func refreshTableView() {
+//        DispatchQueue.global().sync {
+//            print("Started Refresh")
+//            refresh(nil)
+//            print("Finished Refresh")
+//
+//        }
+//    }
 }
