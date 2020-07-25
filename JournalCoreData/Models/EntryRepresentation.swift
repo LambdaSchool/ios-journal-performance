@@ -14,7 +14,7 @@ struct EntryRepresentation: Codable {
     var mood: String?
     var timestamp: Date?
     var identifier: String?
-    var idArr: [String] = []
+  /*  var idArr: [String] = [] */
     
     
     func fetch() {

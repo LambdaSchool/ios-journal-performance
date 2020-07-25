@@ -32,11 +32,12 @@ class CoreDataImporter {
     }
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
-        entry.title = entryRep.title
         entry.bodyText = entryRep.bodyText
         entry.mood = entryRep.mood
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
+        entry.title = entryRep.title
+        
     }
     
     private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
