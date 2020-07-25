@@ -18,40 +18,42 @@ class CoreDataImporter {
         
         print("Began syncing")
         
-        let entriesToFetch = entries.compactMap { $0.identifier }
-        
-        let representationsByID = Dictionary(uniqueKeysWithValues: zip(entriesToFetch, entries))
-        
-        var entriesToCreate = representationsByID
-        
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        
-        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", entriesToFetch)
-        
-        let context = CoreDataStack.shared.container.newBackgroundContext()
-        
-        context.performAndWait {
+        DispatchQueue.global().async {
+            let entriesToFetch = entries.compactMap { $0.identifier }
             
-            do {
-                let existingEntries = try context.fetch(fetchRequest)
+            let representationsByID = Dictionary(uniqueKeysWithValues: zip(entriesToFetch, entries))
+            
+            var entriesToCreate = representationsByID
+            
+            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+            
+            fetchRequest.predicate = NSPredicate(format: "identifier IN %@", entriesToFetch)
+            
+            self.context.perform {
                 
-                for entry in existingEntries {
-                    guard let id = entry.identifier,
-                        let representation = representationsByID[id] else { continue }
+                do {
+                    let existingEntries = try self.context.fetch(fetchRequest)
                     
-                    self.update(entry: entry, with: representation)
+                    for entry in existingEntries {
+                        guard let id = entry.identifier,
+                            let representation = representationsByID[id] else { continue }
+                        
+                        self.update(entry: entry, with: representation)
+                        
+                        entriesToCreate.removeValue(forKey: id)
+                    }
                     
-                    entriesToCreate.removeValue(forKey: id)
+                    for representation in entriesToCreate.values {
+                        _ = Entry(entryRepresentation: representation, context: self.context)
+                        
+                    }
+                    try self.context.save()
+                } catch {
+                    NSLog("Error fetching entries for IDs: \(error)")
                 }
-                
-                for representation in entriesToCreate.values {
-                    Entry(entryRepresentation: representation, context: self.context)
-                }
-                try context.save()
-            } catch {
-                NSLog("Error fetching entries for IDs: \(error)")
             }
         }
+        
         print("Done syncing")
     }
     
@@ -63,21 +65,21 @@ class CoreDataImporter {
         entry.identifier = entryRep.identifier
     }
     
-    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
-        
-        guard let identifier = identifier else { return nil }
-        
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
-        
-        var result: Entry? = nil
-        do {
-            result = try context.fetch(fetchRequest).first
-        } catch {
-            NSLog("Error fetching single entry: \(error)")
-        }
-        return result
-    }
+//    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+//
+//        guard let identifier = identifier else { return nil }
+//
+//        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+//        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+//
+//        var result: Entry? = nil
+//        do {
+//            result = try context.fetch(fetchRequest).first
+//        } catch {
+//            NSLog("Error fetching single entry: \(error)")
+//        }
+//        return result
+//    }
     
     let context: NSManagedObjectContext
 }
