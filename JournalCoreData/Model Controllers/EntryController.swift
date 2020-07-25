@@ -35,7 +35,6 @@ class EntryController {
     }
     
     func delete(entry: Entry) {
-        
         CoreDataStack.shared.mainContext.delete(entry)
         deleteEntryFromServer(entry: entry)
         saveToPersistentStore()
@@ -107,10 +106,12 @@ class EntryController {
                 completion(nil, NSError())
                 return
             }
+            
+            let context = CoreDataStack.shared.mainContext
 
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
-                completion(entryReps, nil)
+//                self.updateEntries(with: entryReps, in: context)
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
                 completion(nil, error)
