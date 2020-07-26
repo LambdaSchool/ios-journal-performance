@@ -9,11 +9,11 @@
 import Foundation
 
 enum Mood: String {
-    case bad = "☹️"
-    case neutral = "😐"
-    case good = "🙂"
-    
-    static var allCases: [Mood] {
-        return [.bad, .neutral, .good]
-    }
+  case bad = "☹️"
+  case neutral = "😐"
+  case good = "🙂"
+  
+  static var allCases: [Mood] {
+    return [.bad, .neutral, .good]
+  }
 }

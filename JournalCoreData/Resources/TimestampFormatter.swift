@@ -9,15 +9,15 @@
 import Foundation
 
 class TimestampFormatter {
-    
-    static func formatTimestamp(for entry: Entry) -> String {
-        return dateFormatter.string(from: entry.timestamp!)
-    }
-    
-    static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.dateStyle = .short
-        return formatter
-    }()
+  
+  static func formatTimestamp(for entry: Entry) -> String {
+    return dateFormatter.string(from: entry.timestamp!)
+  }
+  
+  static let dateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.timeStyle = .short
+    formatter.dateStyle = .short
+    return formatter
+  }()
 }
