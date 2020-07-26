@@ -9,28 +9,28 @@
 import Foundation
 
 struct EntryRepresentation: Codable {
-    var title: String?
-    var bodyText: String?
-    var mood: String?
-    var timestamp: Date?
-    var identifier: String?
+  var title: String?
+  var bodyText: String?
+  var mood: String?
+  var timestamp: Date?
+  var identifier: String?
 }
 
 func ==(lhs: EntryRepresentation, rhs: Entry) -> Bool {
-    return rhs.title == lhs.title &&
-        rhs.bodyText == lhs.bodyText &&
-        rhs.mood == lhs.mood &&
-        rhs.identifier == lhs.identifier
+  return rhs.title == lhs.title &&
+    rhs.bodyText == lhs.bodyText &&
+    rhs.mood == lhs.mood &&
+    rhs.identifier == lhs.identifier
 }
 
 func ==(lhs: Entry, rhs: EntryRepresentation) -> Bool {
-    return rhs == lhs
+  return rhs == lhs
 }
 
 func !=(lhs: EntryRepresentation, rhs: Entry) -> Bool {
-    return !(lhs == rhs)
+  return !(lhs == rhs)
 }
 
 func !=(lhs: Entry, rhs: EntryRepresentation) -> Bool {
-    return rhs != lhs
+  return rhs != lhs
 }
