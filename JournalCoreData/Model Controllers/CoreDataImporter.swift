@@ -10,71 +10,93 @@ import Foundation
 import CoreData
 
 class CoreDataImporter {
-    init(context: NSManagedObjectContext = CoreDataStack.shared.backgroundContext ) {
-        self.context = context
-    }
+  init(context: NSManagedObjectContext) {
+    self.context = context
+  }
+  
+  func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
     
-    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
-       
-        print("Start syncing")
-        self.context.perform {
-            var identifiersFromServer: [String] = []
-            
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                identifiersFromServer.append(identifier)
-            }
-                let coreDataEntries = self.fetchEntriesFromPersistentStore(with: identifiersFromServer, in: self.context)
-            var coreDataEntryLookUpTable: [String: Entry] = [:]
-            
-            if let coreDataEntries = coreDataEntries {
-                for entry in coreDataEntries {
-                    guard let identifier = entry.identifier else { continue }
-                    coreDataEntryLookUpTable[identifier] = entry
-                }
-            }
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                
-                let coreDataEntry = coreDataEntryLookUpTable[identifier]
-                if let coreDataEntry = coreDataEntry, coreDataEntry != entryRep {
-                    self.update(entry: coreDataEntry, with: entryRep)
-                } else {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
-                }
-            }
-            
-            print("Finish syncing")
-            completion(nil)
+//    print("start syncing: \(Date())")
+//
+//    let entry = self.fetchSingleEntryFromPersistentStore(entry: entries, in: self.context)
+//
+//    self.context.perform {
+//
+//      // Right now I am looping through each entry in the array to see if it has the same identifier
+//
+//      for entryRep in entries {
+//        guard let identifier = entryRep.identifier else { continue }
+//
+//        let entry = entry![identifier]
+//
+//        // if it's an entry and if it's not the same as the representation
+//        if let entry = entry, entry != entryRep {
+//          // update to Firebase & Core Data
+//          self.update(entry: entry, with: entryRep)
+//        } else if entry == nil {
+//          _ = Entry(entryRepresentation: entryRep, context: self.context)
+//        }
+//      }
+//      completion(nil)
+//      print("finish syncing: \(Date())")
+//    }
+    NSLog("Sync started")
+    
+    let identifiersToFetch = entries.compactMap { $0.identifier }
+    let repsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entries))
+    var entriesToCreate = repsByID
+    
+    let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+    fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
+    let context = CoreDataStack.shared.container.newBackgroundContext()
+    
+    self.context.perform {
+      do {
+        let existingEntries = try context.fetch(fetchRequest)
+        for entry in existingEntries {
+          guard let identifier = entry.identifier, let representation = repsByID[identifier] else { continue }
+          self.update(entry: entry, with: representation)
+          entriesToCreate.removeValue(forKey: identifier)
         }
-    }
-    
-    private func update(entry: Entry, with entryRep: EntryRepresentation) {
         
-        entry.title = entryRep.title
-        entry.bodyText = entryRep.bodyText
-        entry.mood = entryRep.mood
-        entry.timestamp = entryRep.timestamp
-        entry.identifier = entryRep.identifier
-    }
-    
-    private func fetchEntriesFromPersistentStore(with identifiers: [String], in context: NSManagedObjectContext) -> [Entry]? {
-        
-        
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiers)
-        
-      
-        do {
-            
-            let entries = try context.fetch(fetchRequest)
-          return entries
-     
-        } catch {
-            NSLog("Error fetching single entry: \(error)")
+        for representation in entriesToCreate.values {
+          let _ = Entry(entryRepresentation: representation,context: context)
         }
-        return nil
+        completion(nil)
+        NSLog("Sync finished")
+        
+        
+      } catch {
+        print(error)
+        return
+      }
     }
+    try? context.save()
     
-    let context: NSManagedObjectContext
+  }
+  
+  // takes an Entry whose values should be updated, and an Entry Representation to take the values from
+  private func update(entry: Entry, with entryRep: EntryRepresentation) {
+    entry.title = entryRep.title
+    entry.bodyText = entryRep.bodyText
+    entry.mood = entryRep.mood
+    entry.timestamp = entryRep.timestamp
+    entry.identifier = entryRep.identifier
+  }
+  
+  private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+    guard let identifier = identifier else { return nil }
+    let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+    fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+    var result: Entry? = nil
+    do {
+      result = try context.fetch(fetchRequest).first
+    } catch {
+      NSLog("Error fetching single entry: \(error)")
+    }
+    return result
+  }
+  
+  let context: NSManagedObjectContext
 }
+
