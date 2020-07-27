@@ -139,18 +139,8 @@ class EntryController {
                 completion(error)
                 return
             }
-            
-            context.perform {
-                do {
-                    try context.save()
-                    completion(nil)
-                } catch {
-                    NSLog("Error saving sync context: \(error)")
-                    completion(error)
-                    return
-                }
-                print("finished sync")
-            }
+            print("finished sync")
+            completion(nil)
         }
     }
     
