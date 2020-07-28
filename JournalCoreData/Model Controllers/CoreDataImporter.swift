@@ -13,23 +13,35 @@ class CoreDataImporter {
     init(context: NSManagedObjectContext) {
         self.context = context
     }
-    
-    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+
+    var cachedEntries: [String : EntryRepresentation] = [:]
+
+    func sync(entries: [String: EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
-                
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
+
+            print(" Sync initialized \(Date())")
+
+            let journalEntries = self.fetchEntriesFromPersistenStore(in: self.context)
+            guard let unwrappedJournalEntries = journalEntries else { return }
+
+
+            for (id, entryRep) in entries {
+                let entry = unwrappedJournalEntries[id]
+                if let entry = entry, entryRep != entry {
                     self.update(entry: entry, with: entryRep)
                 } else if entry == nil {
                     _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
             }
-            completion(nil)
+
+            self.cachedEntries = entries
         }
+        print ("Sync complete \(Date())")
+        // Initial run sync time 2+ minutes  , final time no difference
+        completion(nil)
     }
+
     
     private func update(entry: Entry, with entryRep: EntryRepresentation) {
         entry.title = entryRep.title
@@ -54,6 +66,30 @@ class CoreDataImporter {
         }
         return result
     }
-    
+
+    private func fetchEntriesFromPersistenStore(in conterxt: NSManagedObjectContext) -> [String: Entry]? {
+        let request: NSFetchRequest<Entry> = Entry.fetchRequest()
+
+        var results: [Entry]? = nil
+
+        do {
+            results = try context.fetch(request)
+        } catch {
+            NSLog("Error fetching results \(error)")
+        }
+
+
+        guard let resultArray = results else { return nil }
+        var entryArray: [String: Entry] = [:]
+        for entry in resultArray {
+            if let id = entry.identifier {
+                entryArray[id] = entry
+            }
+        }
+        return entryArray
+    }
+
+
+
     let context: NSManagedObjectContext
 }
