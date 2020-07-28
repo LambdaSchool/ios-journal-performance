@@ -139,8 +139,14 @@ class EntryController {
                 completion(error)
                 return
             }
+            do {
+                try context.save()
+                completion(nil)
+            } catch {
+                print("error saving)")
+                completion(error)
+            }
             print("finished sync")
-            completion(nil)
         }
     }
     

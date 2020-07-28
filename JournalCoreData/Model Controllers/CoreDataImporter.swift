@@ -18,42 +18,40 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         print("Starting sync")
 
-        let identifiersToFetch = entries.compactMap({ ($0.identifier) })
+        DispatchQueue.global().async {
 
-        let representationsByID = Dictionary(uniqueKeysWithValues:
-            zip(identifiersToFetch, entries)
-        )
+            let identifiersToFetch = entries.compactMap({ ($0.identifier) })
 
-        var entriesToCreate = representationsByID
-        let predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
+            let representationsByID = Dictionary(uniqueKeysWithValues:
+                zip(identifiersToFetch, entries)
+            )
 
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = predicate
+            var entriesToCreate = representationsByID
+            let predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
 
-        self.context.performAndWait {
-            do {
-                let existingEntries = try self.context.fetch(fetchRequest)
+            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+            fetchRequest.predicate = predicate
 
-                for entryReps in existingEntries {
-                    guard let id = entryReps.identifier, let entryRep = representationsByID[id] else { continue }
-                    self.update(entry: entryReps, with: entryRep)
-                    entriesToCreate.removeValue(forKey: id)
+            self.context.perform {
+                do {
+                    let existingEntries = try self.context.fetch(fetchRequest)
+
+                    for entryReps in existingEntries {
+                        guard let id = entryReps.identifier, let entryRep = representationsByID[id] else { continue }
+                        self.update(entry: entryReps, with: entryRep)
+                        entriesToCreate.removeValue(forKey: id)
+                    }
+
+                    for nilEntries in entriesToCreate.values {
+                        _ = Entry(entryRepresentation: nilEntries, context: self.context)
+                    }
+                    completion(nil)
+                } catch {
+                    NSLog("Error fetching entries for identifiers: \(error)")
+                    completion(error)
                 }
-
-                for nilEntries in entriesToCreate.values {
-                    Entry(entryRepresentation: nilEntries, context: self.context)
-                }
-
-            } catch {
-                NSLog("Error fetching entries for identifiers: \(error)")
-                completion(nil)
+               // self.context.reset()
             }
-            do {
-                try CoreDataStack.shared.save(context: self.context)
-            } catch {
-                print("error saving)")
-            }
-            self.context.reset()
         }
     }
 
