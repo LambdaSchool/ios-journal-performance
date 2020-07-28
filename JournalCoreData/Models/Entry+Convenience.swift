@@ -10,6 +10,19 @@ import Foundation
 import CoreData
 
 extension Entry {
+
+    var entryRepresentation: EntryRepresentation? {
+
+        guard let mood = mood, let title = title else { return nil }
+
+        let id = identifier ?? UUID().uuidString
+
+        return EntryRepresentation(title: title,
+                                   bodyText: bodyText,
+                                   mood: mood, timestamp: timestamp!,
+                                   identifier: id)
+
+    }
     
     convenience init(title: String,
                      bodyText: String,
