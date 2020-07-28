@@ -17,7 +17,14 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         self.refreshControl = refreshControl
-        
+
+
+        if let importer = entryController.importer {
+            journalCache = importer.cachedEntries
+            
+        }
+
+
         refresh(nil)
     }
     
@@ -149,7 +156,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     // MARK: - Properties
     
     let entryController = EntryController()
-    
+    var journalCache: [String: EntryRepresentation] = [:]
+
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]

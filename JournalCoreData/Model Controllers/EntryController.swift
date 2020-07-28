@@ -12,7 +12,7 @@ import CoreData
 let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
 
 class EntryController {
-        
+
     func createEntry(with title: String, bodyText: String, mood: String) {
         
         let entry = Entry(title: title, bodyText: bodyText, mood: mood)
@@ -123,12 +123,27 @@ class EntryController {
         fetchEntriesFromServer { (representations, error) in
             if error != nil { return }
             guard let representations = representations else { return }
+
+            var idArray: [String] = []
+            for representation in representations {
+                if let id = representation.identifier {
+                    idArray.append(id)
+                }
+            }
+
+            var representationById: [String: EntryRepresentation] = [:]
+            for (key, value) in idArray.enumerated() {
+                representationById[value] = representations[key]
+            }
+
+
+
             let moc = CoreDataStack.shared.container.newBackgroundContext()
-            self.updateEntries(with: representations, in: moc, completion: completion)
+            self.updateEntries(with: representationById, in: moc, completion: completion)
         }
     }
     
-    private func updateEntries(with representations: [EntryRepresentation],
+    private func updateEntries(with representations: [String: EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
@@ -161,5 +176,5 @@ class EntryController {
         }
     }
     
-    private var importer: CoreDataImporter?
+    var importer: CoreDataImporter?
 }
