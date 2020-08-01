@@ -59,11 +59,14 @@ class EntryController {
         URLSession.shared.dataTask(with: request) { (data, _, error) in
             if let error = error {
                 NSLog("Error PUTting Entry to server: \(error)")
-                completion(error)
-                return
+                DispatchQueue.main.async {
+                    completion(error)
+                    return
+                }
             }
-            
-            completion(nil)
+            DispatchQueue.main.async {
+                completion(nil)
+            }
         }.resume()
     }
     
@@ -98,22 +101,30 @@ class EntryController {
             
             if let error = error {
                 NSLog("Error fetching entries from server: \(error)")
-                completion(nil, error)
+                DispatchQueue.main.async {
+                    completion(nil, error)
+                }
                 return
             }
             
             guard let data = data else {
                 NSLog("No data returned from data task")
-                completion(nil, NSError())
+                DispatchQueue.main.async {
+                    completion(nil, NSError())
+                }
                 return
             }
 
             do {
                 let entryReps = try JSONDecoder().decode([String: EntryRepresentation].self, from: data).map({$0.value})
-                completion(entryReps, nil)
+                DispatchQueue.main.async {
+                    completion(entryReps, nil)
+                }
             } catch {
                 NSLog("Error decoding JSON data: \(error)")
-                completion(nil, error)
+                DispatchQueue.main.async {
+                    completion(nil, error)
+                }
                 return
             }
         }.resume()
@@ -133,7 +144,7 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
+        importer?.sync(representations: representations) { (error) in
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
