@@ -14,42 +14,20 @@ class CoreDataImporter {
         self.context = context
     }
     
-    func sync(representations: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
+    func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
-        let context = CoreDataStack.shared.container.newBackgroundContext()
-        
-        let identifiersToFetch = representations.compactMap({ $0.identifier })
-        
-        let representationsByID = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, representations))
-        var entriesToCreate = representationsByID
-        
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
-        
-        context.performAndWait {
-            do {
-                let existingEntries = try context.fetch(fetchRequest)
+        self.context.perform {
+            for entryRep in entries {
+                guard let identifier = entryRep.identifier else { continue }
                 
-                for entry in existingEntries {
-                    guard let id = entry.identifier,
-                        let representation = representationsByID[id] else { continue }
-                    
-                    self.update(entry: entry, with: representation)
-                    entriesToCreate.removeValue(forKey: id)
+                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
+                if let entry = entry, entry != entryRep {
+                    self.update(entry: entry, with: entryRep)
+                } else if entry == nil {
+                    _ = Entry(entryRepresentation: entryRep, context: self.context)
                 }
-                
-                for representation in entriesToCreate.values {
-                    Entry(entryRepresentation: representation, context: context)
-                }
-            } catch {
-                print("Error fetching entries for UUIDs: \(error)")
             }
-            
-            do {
-                try context.save()
-            } catch {
-                print("There's an error!")
-            }
+            completion(nil)
         }
     }
     
@@ -59,6 +37,22 @@ class CoreDataImporter {
         entry.mood = entryRep.mood
         entry.timestamp = entryRep.timestamp
         entry.identifier = entryRep.identifier
+    }
+    
+    private func fetchSingleEntryFromPersistentStore(with identifier: String?, in context: NSManagedObjectContext) -> Entry? {
+        
+        guard let identifier = identifier else { return nil }
+        
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier == %@", identifier)
+        
+        var result: Entry? = nil
+        do {
+            result = try context.fetch(fetchRequest).first
+        } catch {
+            NSLog("Error fetching single entry: \(error)")
+        }
+        return result
     }
     
     let context: NSManagedObjectContext
