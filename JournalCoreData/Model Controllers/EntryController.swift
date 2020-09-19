@@ -9,7 +9,8 @@
 import Foundation
 import CoreData
 
-let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
+//let baseURL = URL(string: "https://journal-performance2.firebaseio.com/")!
+let baseURL = URL(string: "https://jornalcoredata.firebaseio.com/")!
 
 class EntryController {
         
@@ -133,7 +134,14 @@ class EntryController {
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
         
         importer = CoreDataImporter(context: context)
+        print("Started sync")
+        let startSync = CFAbsoluteTimeGetCurrent()
         importer?.sync(entries: representations) { (error) in
+            defer {
+                let diff = CFAbsoluteTimeGetCurrent() - startSync
+                print("Sync Finished")
+                print("Time to sync: \(diff) seconds")
+            }
             if let error = error {
                 NSLog("Error syncing entries from server: \(error)")
                 completion(error)
