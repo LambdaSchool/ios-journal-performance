@@ -16,18 +16,35 @@ class CoreDataImporter {
     
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
+        let entryById = entries.filter { $0.identifier != nil }
+        let identifiersToFetch = entryById.compactMap {$0.identifier!}
+        
+        let representationById = Dictionary(uniqueKeysWithValues: zip(identifiersToFetch, entryById))
+        
+        var holdingDictionary = representationById
+        
+        //  hint 1: fetch request predicate can use the 'IN' operator to check for a value in array
+        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "identifier IN %@", identifiersToFetch)
+        
         self.context.perform {
-            for entryRep in entries {
-                guard let identifier = entryRep.identifier else { continue }
+            do {
+                let dictionary = try self.context.fetch(fetchRequest)
                 
-                let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
-                if let entry = entry, entry != entryRep {
-                    self.update(entry: entry, with: entryRep)
-                } else if entry == nil {
-                    _ = Entry(entryRepresentation: entryRep, context: self.context)
+                for entry in dictionary {
+                    guard let id = entry.identifier,
+                          let representation = representationById[id] else { continue }
+                    
+                    self.update(entry: entry, with: representation)
+                    holdingDictionary.removeValue(forKey: id)
                 }
+                for representation in holdingDictionary.values {
+                    _ = Entry(entryRepresentation: representation, context: self.context)
+                }
+                completion(nil)
+            } catch {
+                print("error fetching entries with corresponding id: \(error)")
             }
-            completion(nil)
         }
     }
     
