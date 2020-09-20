@@ -11,15 +11,15 @@ import CoreData
 
 class EntriesTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        let refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
-        self.refreshControl = refreshControl
-        
-        refresh(nil)
-    }
+     override func viewDidLoad() {
+           super.viewDidLoad()
+           
+           let refreshControl = UIRefreshControl()
+           refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
+           self.refreshControl = refreshControl
+           
+           refresh(nil)
+       }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -31,15 +31,18 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
-        entryController.refreshEntriesFromServer { error in
-            if let error = error {
-                NSLog("Error refreshing changes from server: \(error)")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-                self.refreshControl?.endRefreshing()
+               entryController.refreshEntriesFromServer { error in
+                   if let error = error {
+                       NSLog("Error refreshing changes from server: \(error)")
+                       return
+                   }
+                   
+                   DispatchQueue.main.async {
+                       self.fetchedResultsController = nil
+                       CoreDataStack.shared.mainContext.reset()
+                       self.fetchedResultsController = self.createFetchedResultsController()
+                       self.tableView.reloadData()
+                       self.refreshControl?.endRefreshing()
             }
         }
     }
@@ -148,20 +151,22 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     // MARK: - Properties
     
-    let entryController = EntryController()
-    
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
-        let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+     let entryController = EntryController()
         
-        let moc = CoreDataStack.shared.mainContext
-        let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
+        lazy var fetchedResultsController: NSFetchedResultsController<Entry>! = self.createFetchedResultsController()
         
-        frc.delegate = self
-        
-        try! frc.performFetch()
-        
-        return frc
-    }()
-    
-}
+        private func createFetchedResultsController() -> NSFetchedResultsController<Entry> {
+            let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+            
+            let moc = CoreDataStack.shared.mainContext
+            let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
+            
+            frc.delegate = self
+            
+            try! frc.performFetch()
+            
+            return frc
+        }
+    }
+
