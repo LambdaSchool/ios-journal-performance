@@ -31,6 +31,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+        
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
@@ -38,6 +39,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                CoreDataStack.shared.mainContext.reset()
+                self.fetchedResultsController = self.createFRC()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
@@ -114,7 +117,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             tableView.reloadRows(at: [indexPath], with: .automatic)
         case .move:
             guard let oldIndexPath = indexPath,
-                let newIndexPath = newIndexPath else { return }
+                  let newIndexPath = newIndexPath else { return }
             tableView.deleteRows(at: [oldIndexPath], with: .automatic)
             tableView.insertRows(at: [newIndexPath], with: .automatic)
         case .delete:
@@ -136,7 +139,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             
         case "ViewEntry":
             guard let destinationVC = segue.destination as? EntryDetailViewController,
-                let indexPath = tableView.indexPathForSelectedRow else { return }
+                  let indexPath = tableView.indexPathForSelectedRow else { return }
             
             destinationVC.entry = fetchedResultsController.object(at: indexPath)
             destinationVC.entryController = entryController
@@ -150,7 +153,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     let entryController = EntryController()
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    func createFRC() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
         
@@ -162,6 +165,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         try! frc.performFetch()
         
         return frc
-    }()
+    }
     
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = self.createFRC()
 }
