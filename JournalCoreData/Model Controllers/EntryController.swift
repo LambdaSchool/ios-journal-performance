@@ -131,25 +131,41 @@ class EntryController {
     private func updateEntries(with representations: [EntryRepresentation],
                                in context: NSManagedObjectContext,
                                completion: @escaping ((Error?) -> Void) = { _ in }) {
-        importer = CoreDataImporter(context: context)
-        importer?.sync(entries: representations) { (error) in
-            if let error = error {
-                NSLog("Error syncing entries from server: \(error)")
+        
+        context.perform {
+            do {
+                let repIDs = representations.map { $0.identifier }
+                let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
+                fetchRequest.predicate = NSPredicate(format: "identifier IN %@", repIDs)
+                let existingEntries = try context.fetch(fetchRequest)
+                let entryIDs = existingEntries.map { $0.identifier }
+                let entriesByID = Dictionary(uniqueKeysWithValues: zip(entryIDs, existingEntries))
+                for rep in representations {
+                    let id = rep.identifier
+                    if let entry = entriesByID[id] {
+                        if entry != rep {
+                            self.update(entry: entry, with: rep)
+                        }
+                    } else {
+                        Entry(entryRepresentation: rep, context: context)
+                    }
+                }
+                try context.save()
+                completion(nil)
+            } catch {
+                print("Error syncing entries from server with local: \(error)")
                 completion(error)
                 return
             }
-            
-            context.perform {
-                do {
-                    try context.save()
-                    completion(nil)
-                } catch {
-                    NSLog("Error saving sync context: \(error)")
-                    completion(error)
-                    return
-                }
-            }
         }
+    }
+    
+    private func update(entry: Entry, with entryRep: EntryRepresentation) {
+        entry.title = entryRep.title
+        entry.bodyText = entryRep.bodyText
+        entry.mood = entryRep.mood
+        entry.timestamp = entryRep.timestamp
+        entry.identifier = entryRep.identifier
     }
     
     func saveToPersistentStore() {        
@@ -159,6 +175,4 @@ class EntryController {
             NSLog("Error saving managed object context: \(error)")
         }
     }
-    
-    private var importer: CoreDataImporter?
 }

@@ -39,9 +39,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
-//                self.fetchedResultsController = nil
-//                CoreDataStack.shared.mainContext.reset()
-//                self.fetchedResultsController = self.createFRC()
+                CoreDataStack.shared.mainContext.reset()
+                self.fetchedResultsController = self.createFRC()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
@@ -118,7 +117,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             tableView.reloadRows(at: [indexPath], with: .automatic)
         case .move:
             guard let oldIndexPath = indexPath,
-                let newIndexPath = newIndexPath else { return }
+                  let newIndexPath = newIndexPath else { return }
             tableView.deleteRows(at: [oldIndexPath], with: .automatic)
             tableView.insertRows(at: [newIndexPath], with: .automatic)
         case .delete:
@@ -140,7 +139,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             
         case "ViewEntry":
             guard let destinationVC = segue.destination as? EntryDetailViewController,
-                let indexPath = tableView.indexPathForSelectedRow else { return }
+                  let indexPath = tableView.indexPathForSelectedRow else { return }
             
             destinationVC.entry = fetchedResultsController.object(at: indexPath)
             destinationVC.entryController = entryController
@@ -157,16 +156,16 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     func createFRC() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
-            
+        
         let moc = CoreDataStack.shared.mainContext
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
-            
+        
         frc.delegate = self
-            
+        
         try! frc.performFetch()
-            
+        
         return frc
     }
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry>! = self.createFRC()
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = self.createFRC()
 }
