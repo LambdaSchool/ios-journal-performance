@@ -23,7 +23,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+        let timer = CFAbsoluteTimeGetCurrent()
+        print("\(timer/60/60) hours to load")
         tableView.reloadData()
     }
     
@@ -38,6 +39,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
             }
             
             DispatchQueue.main.async {
+                print("App is syncing")
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
             }
