@@ -17,9 +17,11 @@ class CoreDataImporter {
     func sync(entries: [EntryRepresentation], completion: @escaping (Error?) -> Void = { _ in }) {
         
         self.context.perform {
+          //  let timer = CFAbsoluteTimeGetCurrent()
+          //  print("\(timer/60/60) hours")
             for entryRep in entries {
                 guard let identifier = entryRep.identifier else { continue }
-                
+               //this is causing 99%
                 let entry = self.fetchSingleEntryFromPersistentStore(with: identifier, in: self.context)
                 if let entry = entry, entry != entryRep {
                     self.update(entry: entry, with: entryRep)
