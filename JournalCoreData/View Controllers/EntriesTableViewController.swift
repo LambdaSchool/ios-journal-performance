@@ -21,25 +21,23 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         refresh(nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        tableView.reloadData()
-    }
-    
     // MARK: - Actions
     
     @IBAction func refresh(_ sender: Any?) {
         refreshControl?.beginRefreshing()
+        let start = CFAbsoluteTimeGetCurrent()
         entryController.refreshEntriesFromServer { error in
             if let error = error {
                 NSLog("Error refreshing changes from server: \(error)")
                 return
             }
-            
             DispatchQueue.main.async {
+                CoreDataStack.shared.mainContext.reset()
+                self.fetchedResultsController = self.createFRC()
                 self.tableView.reloadData()
                 self.refreshControl?.endRefreshing()
+                let diff = CFAbsoluteTimeGetCurrent() - start
+                print("Time taken to sync: \(diff)")
             }
         }
     }
@@ -68,7 +66,7 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             
             let entry = fetchedResultsController.object(at: indexPath)
@@ -120,6 +118,8 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
         case .delete:
             guard let indexPath = indexPath else { return }
             tableView.deleteRows(at: [indexPath], with: .automatic)
+        default:
+            break
         }
     }
     
@@ -150,18 +150,17 @@ class EntriesTableViewController: UITableViewController, NSFetchedResultsControl
     
     let entryController = EntryController()
     
-    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
+    lazy var fetchedResultsController: NSFetchedResultsController<Entry> = createFRC()
+    
+    func createFRC() -> NSFetchedResultsController<Entry> {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
-        
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "mood", ascending: false), NSSortDescriptor(key: "timestamp", ascending: false)]
         let moc = CoreDataStack.shared.mainContext
+        moc.reset()
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: "mood", cacheName: nil)
-        
         frc.delegate = self
-        
         try! frc.performFetch()
-        
         return frc
-    }()
+        }
     
 }

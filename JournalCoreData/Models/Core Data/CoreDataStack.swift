@@ -13,16 +13,33 @@ class CoreDataStack {
     
     static let shared = CoreDataStack()
     
-    let container: NSPersistentContainer = {
+    lazy var container: NSPersistentContainer = {
         
-        let container = NSPersistentContainer(name: "JournalCoreData" as String)
-        container.loadPersistentStores() { (storeDescription, error) in
-            if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+        let container = NSPersistentContainer(name: "JournalCoreData")
+        container.loadPersistentStores { (_, error) in
+            if let error = error {
+                fatalError("Failed to load persistent stores: \(error)")
             }
         }
+        container.viewContext.automaticallyMergesChangesFromParent = false
         return container
     }()
     
-    var mainContext: NSManagedObjectContext { return container.viewContext }
+    func save(context: NSManagedObjectContext = CoreDataStack.shared.mainContext) throws {
+        var error: Error?
+        
+        context.performAndWait {
+            do {
+                try context.save()
+            } catch let saveError {
+                error = saveError
+            }
+        }
+        if let error = error { throw error }
+    }
+    
+    var mainContext: NSManagedObjectContext {
+        return container.viewContext
+    }
+    
 }
